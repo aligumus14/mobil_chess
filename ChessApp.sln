@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChessApp.API", "ChessApp.API\ChessApp.API.csproj", "{CC97123C-ECF6-48EF-A835-971386CB4E3B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChessApp.Core", "ChessApp.Core\ChessApp.Core.csproj", "{9CBDBE02-0322-4B47-B610-45CE0C4B5AA7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChessApp.Infrastructure", "ChessApp.Infrastructure\ChessApp.Infrastructure.csproj", "{D0C54CB9-5F35-4198-B14A-50E5FBDD8A4E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChessApp.Application", "ChessApp.Application\ChessApp.Application.csproj", "{21B4FEBA-5D1E-4FC0-A56B-D8BC6188D27D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CC97123C-ECF6-48EF-A835-971386CB4E3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC97123C-ECF6-48EF-A835-971386CB4E3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC97123C-ECF6-48EF-A835-971386CB4E3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC97123C-ECF6-48EF-A835-971386CB4E3B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CBDBE02-0322-4B47-B610-45CE0C4B5AA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CBDBE02-0322-4B47-B610-45CE0C4B5AA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CBDBE02-0322-4B47-B610-45CE0C4B5AA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CBDBE02-0322-4B47-B610-45CE0C4B5AA7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0C54CB9-5F35-4198-B14A-50E5FBDD8A4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0C54CB9-5F35-4198-B14A-50E5FBDD8A4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0C54CB9-5F35-4198-B14A-50E5FBDD8A4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0C54CB9-5F35-4198-B14A-50E5FBDD8A4E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21B4FEBA-5D1E-4FC0-A56B-D8BC6188D27D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21B4FEBA-5D1E-4FC0-A56B-D8BC6188D27D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21B4FEBA-5D1E-4FC0-A56B-D8BC6188D27D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21B4FEBA-5D1E-4FC0-A56B-D8BC6188D27D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
