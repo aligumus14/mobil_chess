@@ -16,3 +16,13 @@ C:\Users\gumus\OneDrive\Masaüstü\mobil\ChessApp.Application\obj\Debug\net8.0\r
 C:\Users\gumus\AppData\Local\Temp\chessapi-build\ChessApp.Application.deps.json
 C:\Users\gumus\AppData\Local\Temp\chessapi-build\ChessApp.Application.dll
 C:\Users\gumus\AppData\Local\Temp\chessapi-build\ChessApp.Application.pdb
+C:\Users\gumus\OneDrive\Masaüstü\mobil\ChessApp.Application\obj\Debug\net8.0\ChessApp.Application.sourcelink.json
+C:\Users\gumus\AppData\Local\Temp\api-build\ChessApp.Application.deps.json
+C:\Users\gumus\AppData\Local\Temp\api-build\ChessApp.Application.dll
+C:\Users\gumus\AppData\Local\Temp\api-build\ChessApp.Application.pdb
+C:\Users\gumus\OneDrive\Masaüstü\mobil\ChessApp.API\bin\Debug\net8.0-check\ChessApp.Application.deps.json
+C:\Users\gumus\OneDrive\Masaüstü\mobil\ChessApp.API\bin\Debug\net8.0-check\ChessApp.Application.dll
+C:\Users\gumus\OneDrive\Masaüstü\mobil\ChessApp.API\bin\Debug\net8.0-check\ChessApp.Application.pdb
+C:\Users\gumus\OneDrive\Masaüstü\mobil\.codex\api-build-check\ChessApp.Application.deps.json
+C:\Users\gumus\OneDrive\Masaüstü\mobil\.codex\api-build-check\ChessApp.Application.dll
+C:\Users\gumus\OneDrive\Masaüstü\mobil\.codex\api-build-check\ChessApp.Application.pdb

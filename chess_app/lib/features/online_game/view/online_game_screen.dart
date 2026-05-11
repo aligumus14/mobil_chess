@@ -26,6 +26,15 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen> {
   }
 
   @override
+  void deactivate() {
+    // Tear down the online game provider when leaving the screen so a future
+    // visit cannot inherit the previous game's gameId, hub connection, or
+    // finished-state end dialog.
+    ref.invalidate(onlineGameProvider);
+    super.deactivate();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final state = ref.watch(onlineGameProvider);
     final controller = ref.read(onlineGameProvider.notifier);
@@ -88,6 +97,8 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen> {
                   ),
                 ],
                 const SizedBox(height: 12),
+                _ClockRow(state: state, forOpponent: true),
+                const SizedBox(height: 8),
                 Center(
                   child: SizedBox(
                     width: boardSize,
@@ -103,8 +114,14 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 8),
+                _ClockRow(state: state, forOpponent: false),
                 const SizedBox(height: 16),
                 _MoveList(moves: state.sanHistory),
+                if (state.waitingForStartup) ...[
+                  const SizedBox(height: 12),
+                  _StartupCountdown(state: state),
+                ],
                 const SizedBox(height: 24),
               ],
             ),
@@ -173,6 +190,9 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen> {
   void _showEndDialog(OnlineGameState state) {
     final yourDelta = state.yourDelta ?? 0;
     final sign = yourDelta >= 0 ? '+' : '';
+    final reasonLabel = state.terminationReason == 'start-timeout'
+        ? 'Baslangic suresi doldu'
+        : state.terminationReason;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -182,8 +202,8 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (state.terminationReason != null)
-              Text('Sebep: ${state.terminationReason}'),
+            if (reasonLabel != null)
+              Text('Sebep: $reasonLabel'),
             const SizedBox(height: 8),
             Text('ELO degisimi: $sign$yourDelta'),
           ],
@@ -219,6 +239,43 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen> {
             child: const Text('Ana Menu'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _StartupCountdown extends StatelessWidget {
+  final OnlineGameState state;
+  const _StartupCountdown({required this.state});
+
+  @override
+  Widget build(BuildContext context) {
+    final ms = state.startupRemainingMs(DateTime.now());
+    if (ms <= 0) return const SizedBox.shrink();
+
+    final low = ms <= 10000;
+    final color = low ? Colors.red.shade800 : Colors.black54;
+
+    return Align(
+      alignment: Alignment.center,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: low ? Colors.red.shade50 : Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: low ? Colors.red.shade200 : Colors.grey.shade300,
+          ),
+        ),
+        child: Text(
+          'Baslangic: ${_ClockRow._formatClock(ms)}',
+          style: TextStyle(
+            color: color,
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
       ),
     );
   }
@@ -261,6 +318,92 @@ class _StatusCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _ClockRow extends StatelessWidget {
+  final OnlineGameState state;
+  // When true, shows the opponent's clock (above the board); otherwise yours
+  // (below the board).
+  final bool forOpponent;
+
+  const _ClockRow({required this.state, required this.forOpponent});
+
+  @override
+  Widget build(BuildContext context) {
+    if (state.timeControl == null || state.yourColor == null) {
+      return const SizedBox.shrink();
+    }
+    final yourSide = state.yourColor!;
+    final oppSide = yourSide == 'white' ? 'black' : 'white';
+    final side = forOpponent ? oppSide : yourSide;
+
+    final now = DateTime.now();
+    final ms = state.liveRemainingMs(side, now);
+    final isActive = !state.finished && state.currentTurn == side;
+    final low = ms <= 10000;
+
+    final label = forOpponent
+        ? (state.opponentUsername ?? 'Rakip')
+        : 'Sen';
+
+    final bg = isActive
+        ? (low ? Colors.red.shade50 : Colors.green.shade50)
+        : Colors.grey.shade100;
+    final fg = isActive
+        ? (low ? Colors.red.shade900 : Colors.green.shade900)
+        : Colors.black87;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isActive ? fg.withValues(alpha: 0.35) : Colors.transparent,
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            forOpponent ? Icons.person_outline : Icons.person,
+            color: fg,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: fg,
+              ),
+            ),
+          ),
+          Text(
+            _formatClock(ms),
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              fontFeatures: const [FontFeature.tabularFigures()],
+              color: fg,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _formatClock(int ms) {
+    final totalSeconds = ms ~/ 1000;
+    final minutes = totalSeconds ~/ 60;
+    final seconds = totalSeconds % 60;
+    if (ms < 10000) {
+      // Under 10s: show tenths.
+      final tenths = (ms % 1000) ~/ 100;
+      return '$minutes:${seconds.toString().padLeft(2, '0')}.$tenths';
+    }
+    return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 }
 

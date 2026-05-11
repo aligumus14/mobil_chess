@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chess/chess.dart' as ch;
 import 'package:flutter_chess_board/flutter_chess_board.dart' as fcb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +7,7 @@ import '../../../services/game_hub_service.dart';
 import '../../auth/provider/auth_providers.dart';
 import '../../game_history/provider/game_history_providers.dart';
 import '../../profile/provider/profile_provider.dart';
+import '../logic/online_time_control.dart';
 
 class OnlineGameState {
   final String gameId;
@@ -25,6 +28,14 @@ class OnlineGameState {
   final bool drawOfferReceived;
   final bool drawOfferSent;
   final bool sessionMissing;
+  // Time control + clocks. Times are stored as a "baseline" remaining duration
+  // valid at [turnStartedAt]. The side currently to move counts down from that
+  // baseline; the other side's value is the live remaining time.
+  final OnlineTimeControl? timeControl;
+  final int whiteRemainingMs;
+  final int blackRemainingMs;
+  final DateTime? turnStartedAt;
+  final DateTime? startupDeadlineUtc;
 
   const OnlineGameState({
     required this.gameId,
@@ -45,6 +56,11 @@ class OnlineGameState {
     this.drawOfferReceived = false,
     this.drawOfferSent = false,
     this.sessionMissing = false,
+    this.timeControl,
+    this.whiteRemainingMs = 0,
+    this.blackRemainingMs = 0,
+    this.turnStartedAt,
+    this.startupDeadlineUtc,
   });
 
   factory OnlineGameState.initial(String gameId) => OnlineGameState(
@@ -58,6 +74,25 @@ class OnlineGameState {
 
   fcb.PlayerColor get boardOrientation =>
       yourColor == 'black' ? fcb.PlayerColor.black : fcb.PlayerColor.white;
+
+  bool get waitingForStartup => !finished && sanHistory.length < 2;
+
+  /// Live remaining time for [side] given [now]. Ticks down for the side to move.
+  /// Clocks stay paused until both players have made their first move.
+  int liveRemainingMs(String side, DateTime now) {
+    final stored = side == 'white' ? whiteRemainingMs : blackRemainingMs;
+    if (finished || turnStartedAt == null || side != currentTurn) return stored;
+    if (waitingForStartup) return stored;
+    final elapsed = now.difference(turnStartedAt!).inMilliseconds;
+    final r = stored - elapsed;
+    return r < 0 ? 0 : r;
+  }
+
+  int startupRemainingMs(DateTime now) {
+    if (!waitingForStartup || startupDeadlineUtc == null) return 0;
+    final remaining = startupDeadlineUtc!.difference(now.toUtc()).inMilliseconds;
+    return remaining < 0 ? 0 : remaining;
+  }
 
   OnlineGameState copyWith({
     String? yourColor,
@@ -77,6 +112,11 @@ class OnlineGameState {
     bool? drawOfferReceived,
     bool? drawOfferSent,
     bool? sessionMissing,
+    OnlineTimeControl? timeControl,
+    int? whiteRemainingMs,
+    int? blackRemainingMs,
+    DateTime? turnStartedAt,
+    DateTime? startupDeadlineUtc,
     bool clearError = false,
   }) =>
       OnlineGameState(
@@ -98,6 +138,11 @@ class OnlineGameState {
         drawOfferReceived: drawOfferReceived ?? this.drawOfferReceived,
         drawOfferSent: drawOfferSent ?? this.drawOfferSent,
         sessionMissing: sessionMissing ?? this.sessionMissing,
+        timeControl: timeControl ?? this.timeControl,
+        whiteRemainingMs: whiteRemainingMs ?? this.whiteRemainingMs,
+        blackRemainingMs: blackRemainingMs ?? this.blackRemainingMs,
+        turnStartedAt: turnStartedAt ?? this.turnStartedAt,
+        startupDeadlineUtc: startupDeadlineUtc ?? this.startupDeadlineUtc,
       );
 }
 
@@ -106,20 +151,47 @@ class OnlineGameController extends Notifier<OnlineGameState> {
   late fcb.ChessBoardController boardController;
   GameHubService? _hub;
   bool _started = false;
+  Timer? _tickTimer;
 
   @override
   OnlineGameState build() {
     _game = ch.Chess();
     boardController = fcb.ChessBoardController();
     ref.onDispose(() {
+      _tickTimer?.cancel();
       boardController.dispose();
       _hub?.disconnect();
     });
     return OnlineGameState.initial('');
   }
 
+  void _startTickTimer() {
+    _tickTimer?.cancel();
+    _tickTimer = Timer.periodic(const Duration(milliseconds: 250), (_) {
+      // Force a rebuild so liveRemainingMs returns a fresh value. We bump the
+      // state by overwriting it with itself + an updated turnStartedAt-only-no-op
+      // — actually we don't need to mutate anything: just notify by re-emitting
+      // the same state. State equality is reference-based here so this works.
+      if (!state.finished) {
+        state = state.copyWith();
+      } else {
+        _tickTimer?.cancel();
+      }
+    });
+  }
+
   Future<void> start(String gameId) async {
-    if (_started) return;
+    // If we've already started for the same game, this is a no-op.
+    // If a new gameId arrives (e.g. after a previous game ended and the user
+    // requeues), tear everything down and rebuild against the new session.
+    if (_started && state.gameId == gameId) return;
+    if (_started) {
+      await _hub?.disconnect();
+      _hub = null;
+      _game = ch.Chess();
+      boardController.loadFen(
+          'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+    }
     _started = true;
     state = OnlineGameState.initial(gameId);
     _hub = ref.read(gameHubServiceProvider);
@@ -129,6 +201,7 @@ class OnlineGameController extends Notifier<OnlineGameState> {
       _hub!
         ..onGameState(_onGameState)
         ..onOpponentMove(_onOpponentMove)
+        ..onMovePlayed(_onMovePlayed)
         ..onGameEnded(_onGameEnded)
         ..onDrawOffered((_) => state = state.copyWith(drawOfferReceived: true))
         ..onMatchFound((_) => state = state.copyWith(clearError: true))
@@ -168,6 +241,14 @@ class OnlineGameController extends Notifier<OnlineGameState> {
     _game = ch.Chess.fromFEN(fen);
     boardController.loadFen(fen);
 
+    final tc = OnlineTimeControl.fromWire(s['timeControl'] as int?);
+    final whiteMs = (s['whiteRemainingMs'] as num?)?.toInt() ??
+        tc.initialSeconds * 1000;
+    final blackMs = (s['blackRemainingMs'] as num?)?.toInt() ??
+        tc.initialSeconds * 1000;
+    final turnStartedAt = _parseUtc(s['turnStartedAtUtc']) ?? DateTime.now();
+    final startupDeadlineUtc = _parseUtc(s['startupDeadlineUtc']);
+
     state = state.copyWith(
       yourColor: s['yourColor']?.toString(),
       opponentUsername: s['yourColor'] == 'white'
@@ -185,8 +266,15 @@ class OnlineGameController extends Notifier<OnlineGameState> {
       drawOfferReceived: false,
       drawOfferSent: false,
       sessionMissing: false,
+      timeControl: tc,
+      whiteRemainingMs: whiteMs,
+      blackRemainingMs: blackMs,
+      turnStartedAt: turnStartedAt,
+      startupDeadlineUtc: startupDeadlineUtc,
       clearError: true,
     );
+
+    if (!state.finished) _startTickTimer();
   }
 
   void _onOpponentMove(Map<String, dynamic> m) {
@@ -206,13 +294,53 @@ class OnlineGameController extends Notifier<OnlineGameState> {
     final history = [...state.sanHistory, san];
     final nextTurn = state.currentTurn == 'white' ? 'black' : 'white';
 
+    final whiteMs = (m['whiteRemainingMs'] as num?)?.toInt() ??
+        state.whiteRemainingMs;
+    final blackMs = (m['blackRemainingMs'] as num?)?.toInt() ??
+        state.blackRemainingMs;
+    final turnStartedAt = _parseUtc(m['turnStartedAtUtc']) ?? DateTime.now();
+    final startupDeadlineUtc = _parseUtc(m['startupDeadlineUtc']);
+
     state = state.copyWith(
       fen: fen,
       currentTurn: nextTurn,
       sanHistory: history,
       drawOfferSent: false,
       drawOfferReceived: false,
+      whiteRemainingMs: whiteMs,
+      blackRemainingMs: blackMs,
+      turnStartedAt: turnStartedAt,
+      startupDeadlineUtc: startupDeadlineUtc ?? state.startupDeadlineUtc,
     );
+  }
+
+  /// Triggered for every move played in this game (including ours). Used to
+  /// sync clocks with the server-authoritative values after our own move.
+  void _onMovePlayed(Map<String, dynamic> m) {
+    final whiteMs = (m['whiteRemainingMs'] as num?)?.toInt();
+    final blackMs = (m['blackRemainingMs'] as num?)?.toInt();
+    final turnStartedAt = _parseUtc(m['turnStartedAtUtc']);
+    final startupDeadlineUtc = _parseUtc(m['startupDeadlineUtc']);
+    if (whiteMs == null &&
+        blackMs == null &&
+        turnStartedAt == null &&
+        startupDeadlineUtc == null) {
+      return;
+    }
+
+    state = state.copyWith(
+      whiteRemainingMs: whiteMs ?? state.whiteRemainingMs,
+      blackRemainingMs: blackMs ?? state.blackRemainingMs,
+      turnStartedAt: turnStartedAt ?? state.turnStartedAt,
+      startupDeadlineUtc: startupDeadlineUtc ?? state.startupDeadlineUtc,
+    );
+  }
+
+  static DateTime? _parseUtc(dynamic v) {
+    if (v == null) return null;
+    if (v is DateTime) return v.toUtc();
+    final s = v.toString();
+    return DateTime.tryParse(s)?.toUtc();
   }
 
   void _onGameEnded(Map<String, dynamic> payload) {
@@ -225,7 +353,8 @@ class OnlineGameController extends Notifier<OnlineGameState> {
     final yourDelta = youAreWhite ? whiteDelta : blackDelta;
     final oppDelta = youAreWhite ? blackDelta : whiteDelta;
 
-    final label = _labelForResult(result, state.yourColor);
+    final label = _labelForResult(result, state.yourColor, reason);
+    _tickTimer?.cancel();
     state = state.copyWith(
       finished: true,
       resultLabel: label,
@@ -241,8 +370,12 @@ class OnlineGameController extends Notifier<OnlineGameState> {
     ref.invalidate(myGamesProvider);
   }
 
-  String _labelForResult(String serverResult, String? yourColor) {
+  String _labelForResult(String serverResult, String? yourColor, String? reason) {
     final r = serverResult.toLowerCase();
+    final why = reason?.toLowerCase() ?? '';
+    if (r.contains('cancel') || why.contains('start-timeout')) {
+      return 'Oyun iptal edildi';
+    }
     if (r.contains('draw')) return 'Beraberlik';
     final whiteWon = r.contains('white');
     if (yourColor == null) return whiteWon ? 'Beyaz kazandi' : 'Siyah kazandi';
@@ -280,12 +413,28 @@ class OnlineGameController extends Notifier<OnlineGameState> {
     final san = _lastSan();
     final fen = _game.fen;
 
+    // Optimistically advance the local clock before the server echoes back.
+    final myColor = state.currentTurn;
+    final now = DateTime.now();
+    final myRemainingLive = state.liveRemainingMs(myColor, now);
+    final isFirstMoveForSide =
+        myColor == 'white' ? state.sanHistory.isEmpty : state.sanHistory.length <= 1;
+    final inc = isFirstMoveForSide ? 0 : (state.timeControl?.incrementSeconds ?? 0) * 1000;
+    final myNewRemaining = myRemainingLive + inc;
+    final newWhite =
+        myColor == 'white' ? myNewRemaining : state.whiteRemainingMs;
+    final newBlack =
+        myColor == 'black' ? myNewRemaining : state.blackRemainingMs;
+
     try {
       await _hub!.makeMove(state.gameId, from, to, san, fen);
       state = state.copyWith(
         fen: fen,
         currentTurn: state.currentTurn == 'white' ? 'black' : 'white',
         sanHistory: [...state.sanHistory, san],
+        whiteRemainingMs: newWhite,
+        blackRemainingMs: newBlack,
+        turnStartedAt: now,
         drawOfferReceived: false,
         drawOfferSent: false,
         clearError: true,

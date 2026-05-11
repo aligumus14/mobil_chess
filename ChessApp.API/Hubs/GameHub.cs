@@ -36,7 +36,13 @@ public class GameHub : Hub
 
         _sessions.SetConnection(gid, userId, Context.ConnectionId);
         await Groups.AddToGroupAsync(Context.ConnectionId, GroupName(gid));
+        if (!session.HasStarted && DateTime.UtcNow >= session.StartupDeadlineUtc)
+        {
+            await CancelStartTimeoutAsync(gid);
+            return;
+        }
 
+        var (initSec, incSec) = session.TimeControl.ToSpec();
         await Clients.Caller.SendAsync("GameState", new
         {
             gameId = session.GameId,
@@ -54,6 +60,13 @@ public class GameHub : Hub
             opponentOnline = session.SideOf(userId) == "white"
                 ? !string.IsNullOrWhiteSpace(session.BlackConnectionId)
                 : !string.IsNullOrWhiteSpace(session.WhiteConnectionId),
+            timeControl = (int)session.TimeControl,
+            initialSeconds = initSec,
+            incrementSeconds = incSec,
+            whiteRemainingMs = session.WhiteRemainingMs,
+            blackRemainingMs = session.BlackRemainingMs,
+            turnStartedAtUtc = session.TurnStartedAt,
+            startupDeadlineUtc = session.StartupDeadlineUtc,
         });
 
         await Clients.Caller.SendAsync("MatchFound", new
@@ -64,6 +77,10 @@ public class GameHub : Hub
             opponentElo = session.SideOf(userId) == "white" ? session.BlackStartElo : session.WhiteStartElo,
             assignedColor = session.SideOf(userId),
             startFen = session.StartFen,
+            timeControl = (int)session.TimeControl,
+            initialSeconds = initSec,
+            incrementSeconds = incSec,
+            startupDeadlineUtc = session.StartupDeadlineUtc,
         });
 
         await Clients.OthersInGroup(GroupName(gid)).SendAsync("OpponentConnected");
@@ -73,9 +90,26 @@ public class GameHub : Hub
     {
         var userId = CurrentUserId();
         var gid = Guid.Parse(gameId);
-        var move = _sessions.AppendMove(gid, userId, fromSquare, toSquare, san, fenAfterMove);
 
-        await Clients.Group(GroupName(gid)).SendAsync("MovePlayed", new
+        OnlineGameMove move;
+        try
+        {
+            move = _sessions.AppendMove(gid, userId, fromSquare, toSquare, san, fenAfterMove);
+        }
+        catch (InvalidOperationException ex) when (ex.Message == "Suren bitti.")
+        {
+            // The mover's clock had already fallen by the time the move arrived.
+            await FlagFallAsync(gid, userId);
+            throw new HubException("Suren bitti.");
+        }
+        catch (InvalidOperationException ex) when (ex.Message == "Oyun baslangic suresi doldu.")
+        {
+            await CancelStartTimeoutAsync(gid);
+            throw new HubException("Oyun baslangic suresi doldu.");
+        }
+
+        var session = _sessions.GetSession(gid);
+        var payload = new
         {
             gameId = gid,
             move.MoveNumber,
@@ -85,19 +119,56 @@ public class GameHub : Hub
             move.San,
             move.FenAfterMove,
             playedAt = move.PlayedAt,
-        });
+            whiteRemainingMs = session?.WhiteRemainingMs ?? 0,
+            blackRemainingMs = session?.BlackRemainingMs ?? 0,
+            turnStartedAtUtc = session?.TurnStartedAt ?? DateTime.UtcNow,
+            startupDeadlineUtc = session?.StartupDeadlineUtc,
+        };
 
-        await Clients.OthersInGroup(GroupName(gid)).SendAsync("OpponentMove", new
+        await Clients.Group(GroupName(gid)).SendAsync("MovePlayed", payload);
+        await Clients.OthersInGroup(GroupName(gid)).SendAsync("OpponentMove", payload);
+    }
+
+    private async Task FlagFallAsync(Guid gid, Guid moverUserId)
+    {
+        var session = _sessions.GetSession(gid);
+        if (session == null || session.Finished) return;
+
+        var moverIsWhite = session.WhiteUserId == moverUserId;
+        var result = moverIsWhite ? GameResult.BlackWin : GameResult.WhiteWin;
+        _sessions.FinishGame(gid, result, "time-out");
+
+        var (whiteDelta, blackDelta) = await _gameService.PersistOnlineSessionAsync(session);
+
+        await Clients.Group(GroupName(gid)).SendAsync("GameEnded", new
         {
             gameId = gid,
-            move.MoveNumber,
-            playerId = userId,
-            move.FromSquare,
-            move.ToSquare,
-            move.San,
-            move.FenAfterMove,
-            playedAt = move.PlayedAt,
+            result = result.ToString(),
+            reason = "time-out",
+            whiteDelta,
+            blackDelta,
         });
+
+        _sessions.RemoveSession(gid);
+    }
+
+    private async Task CancelStartTimeoutAsync(Guid gid)
+    {
+        var session = _sessions.GetSession(gid);
+        if (session == null || session.Finished || session.HasStarted) return;
+
+        _sessions.FinishGame(gid, GameResult.Draw, "start-timeout");
+
+        await Clients.Group(GroupName(gid)).SendAsync("GameEnded", new
+        {
+            gameId = gid,
+            result = "Cancelled",
+            reason = "start-timeout",
+            whiteDelta = 0,
+            blackDelta = 0,
+        });
+
+        _sessions.RemoveSession(gid);
     }
 
     public async Task OfferDraw(string gameId)

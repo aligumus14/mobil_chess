@@ -14,9 +14,14 @@ public class GameSessionService : IGameSessionService
         int whiteElo,
         Guid blackUserId,
         string blackUsername,
-        int blackElo)
+        int blackElo,
+        OnlineTimeControl timeControl)
     {
         var gameId = Guid.NewGuid();
+        var now = DateTime.UtcNow;
+        var (initialSec, incrementSec) = timeControl.ToSpec();
+        var initialMs = initialSec * 1000;
+        var incrementMs = incrementSec * 1000;
         var session = new OnlineGameSession
         {
             GameId = gameId,
@@ -26,6 +31,13 @@ public class GameSessionService : IGameSessionService
             BlackUsername = blackUsername,
             WhiteStartElo = whiteElo,
             BlackStartElo = blackElo,
+            StartedAt = now,
+            TimeControl = timeControl,
+            InitialMs = initialMs,
+            IncrementMs = incrementMs,
+            WhiteRemainingMs = initialMs,
+            BlackRemainingMs = initialMs,
+            TurnStartedAt = now,
         };
 
         _sessions[gameId] = session;
@@ -34,13 +46,23 @@ public class GameSessionService : IGameSessionService
         return session;
     }
 
+    public IEnumerable<OnlineGameSession> GetActiveSessions()
+        => _sessions.Values.Where(s => !s.Finished);
+
     public OnlineGameSession? GetSession(Guid gameId)
         => _sessions.TryGetValue(gameId, out var s) ? s : null;
 
     public OnlineGameSession? GetActiveSessionForUser(Guid userId)
     {
         if (!_userToGame.TryGetValue(userId, out var gameId)) return null;
-        return _sessions.TryGetValue(gameId, out var s) ? s : null;
+        if (!_sessions.TryGetValue(gameId, out var s)) return null;
+        if (s.Finished)
+        {
+            // Stale mapping — clean it up so this user can start a new game.
+            _userToGame.TryRemove(userId, out _);
+            return null;
+        }
+        return s;
     }
 
     public OnlineGameMove AppendMove(
@@ -64,6 +86,38 @@ public class GameSessionService : IGameSessionService
         if (movingSide != session.CurrentTurn)
             throw new InvalidOperationException("Sira sende degil.");
 
+        var now = DateTime.UtcNow;
+        if (!session.HasStarted && now >= session.StartupDeadlineUtc)
+        {
+            throw new InvalidOperationException("Oyun baslangic suresi doldu.");
+        }
+
+        // Each side's first move is free. The normal clocks start only after
+        // both players have made their first move.
+        var isFirstMoveForSide = session.Moves.All(m => m.PlayerId != playerId);
+        var elapsed = isFirstMoveForSide
+            ? 0L
+            : (long)Math.Max(0, (now - session.TurnStartedAt).TotalMilliseconds);
+
+        if (movingSide == "white")
+        {
+            var remaining = session.WhiteRemainingMs - elapsed;
+            if (remaining <= 0)
+            {
+                throw new InvalidOperationException("Suren bitti.");
+            }
+            session.WhiteRemainingMs = remaining + (isFirstMoveForSide ? 0 : session.IncrementMs);
+        }
+        else
+        {
+            var remaining = session.BlackRemainingMs - elapsed;
+            if (remaining <= 0)
+            {
+                throw new InvalidOperationException("Suren bitti.");
+            }
+            session.BlackRemainingMs = remaining + (isFirstMoveForSide ? 0 : session.IncrementMs);
+        }
+
         var move = new OnlineGameMove
         {
             MoveNumber = session.Moves.Count + 1,
@@ -78,6 +132,7 @@ public class GameSessionService : IGameSessionService
         session.CurrentFen = fenAfterMove;
         session.CurrentTurn = session.CurrentTurn == "white" ? "black" : "white";
         session.PendingDrawOfferByUserId = null;
+        session.TurnStartedAt = now;
         return move;
     }
 
@@ -119,6 +174,8 @@ public class GameSessionService : IGameSessionService
         session.PendingDrawOfferByUserId = null;
         session.Result = GameResult.Draw;
         session.TerminationReason = "draw-agreed";
+        _userToGame.TryRemove(session.WhiteUserId, out _);
+        _userToGame.TryRemove(session.BlackUserId, out _);
         return session;
     }
 
@@ -138,6 +195,10 @@ public class GameSessionService : IGameSessionService
         session.PendingDrawOfferByUserId = null;
         session.Result = result;
         session.TerminationReason = reason;
+        // Free the user→game mapping immediately so a user cannot be redirected
+        // back to a finished session even if RemoveSession runs late.
+        _userToGame.TryRemove(session.WhiteUserId, out _);
+        _userToGame.TryRemove(session.BlackUserId, out _);
         return session;
     }
 

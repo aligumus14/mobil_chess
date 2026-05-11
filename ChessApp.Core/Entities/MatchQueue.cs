@@ -9,6 +9,7 @@ public class MatchQueue
     public int EloSnapshot { get; set; }
     public DateTime QueuedAt { get; set; } = DateTime.UtcNow;
     public MatchQueueStatus Status { get; set; } = MatchQueueStatus.Waiting;
+    public OnlineTimeControl TimeControl { get; set; } = OnlineTimeControl.Blitz5;
 
     // Navigation properties
     public User User { get; set; } = null!;

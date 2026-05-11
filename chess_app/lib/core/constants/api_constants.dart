@@ -26,6 +26,7 @@ class ApiConstants {
   static const String matchmakingJoin = '/Matchmaking/join';
   static const String matchmakingLeave = '/Matchmaking/leave';
   static const String matchmakingStatus = '/Matchmaking/status';
+  static const String matchmakingAbandon = '/Matchmaking/abandon';
 
   // Hub endpoint (no /api prefix)
   static const String gameHubWeb = 'http://localhost:5196/hubs/game';

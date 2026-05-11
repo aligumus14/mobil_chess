@@ -1,0 +1,89 @@
+# OS / filesystem
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors / IDEs
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.iml
+*.ipr
+*.iws
+
+# Local agent / workspace artifacts
+.codex/
+.claude/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*.pid
+*.seed
+
+# Environment and local config
+.env
+.env.*
+!.env.example
+*.local.json
+appsettings.*.local.json
+
+# .NET / C#
+**/bin/
+**/obj/
+TestResults/
+*.nupkg
+*.snupkg
+*.coverage
+*.coveragexml
+coverage/
+artifacts/
+
+# Entity Framework generated local files
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Dart / Flutter
+**/.dart_tool/
+**/.pub/
+**/.pub-cache/
+**/build/
+**/doc/api/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/ios/Flutter/.last_build_id
+app.*.symbols
+app.*.map.json
+
+# Android build outputs
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+**/android/.gradle/
+**/android/local.properties
+
+# iOS / macOS build outputs
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/ephemeral/
+**/ios/Runner/GeneratedPluginRegistrant.*
+**/macos/Flutter/ephemeral/
+**/macos/Pods/
+
+# Generated reports
+lcov.info
+coverage.xml
+htmlcov/

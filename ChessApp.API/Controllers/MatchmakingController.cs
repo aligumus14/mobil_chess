@@ -1,5 +1,7 @@
 using System.Security.Claims;
+using ChessApp.Application.DTOs;
 using ChessApp.Application.Services;
+using ChessApp.Core.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,10 +20,13 @@ public class MatchmakingController : ControllerBase
     }
 
     [HttpPost("join")]
-    public async Task<IActionResult> Join()
+    public async Task<IActionResult> Join([FromBody] JoinQueueRequestDto? request)
     {
         var userId = GetCurrentUserId();
-        var result = await _matchmaking.JoinQueueAsync(userId);
+        var tc = request != null && Enum.IsDefined(typeof(OnlineTimeControl), request.TimeControl)
+            ? (OnlineTimeControl)request.TimeControl
+            : OnlineTimeControl.Blitz5;
+        var result = await _matchmaking.JoinQueueAsync(userId, tc);
         return Ok(result);
     }
 
@@ -40,6 +45,32 @@ public class MatchmakingController : ControllerBase
         var userId = GetCurrentUserId();
         var status = await _matchmaking.GetStatusAsync(userId);
         return Ok(status);
+    }
+
+    [HttpPost("abandon")]
+    public async Task<IActionResult> Abandon()
+    {
+        var userId = GetCurrentUserId();
+        var abandoned = await _matchmaking.AbandonActiveSessionAsync(userId);
+        return Ok(new { abandoned });
+    }
+
+    /// Debug-only: returns every queue row so we can see why matches aren't forming.
+    [HttpGet("debug-queue")]
+    public async Task<IActionResult> DebugQueue([FromServices] ChessApp.Core.Interfaces.IUnitOfWork uow)
+    {
+        var all = await uow.MatchQueues.GetAllAsync();
+        var rows = all.Select(q => new
+        {
+            q.Id,
+            q.UserId,
+            q.EloSnapshot,
+            q.QueuedAt,
+            Status = q.Status.ToString(),
+            TimeControl = q.TimeControl.ToString(),
+            TimeControlValue = (int)q.TimeControl,
+        });
+        return Ok(rows);
     }
 
     private Guid GetCurrentUserId()

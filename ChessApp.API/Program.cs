@@ -1,6 +1,7 @@
 using System.Text;
 using ChessApp.API.Hubs;
 using ChessApp.API.Middleware;
+using ChessApp.API.Services;
 using ChessApp.Application.Services;
 using ChessApp.Core.Interfaces;
 using ChessApp.Infrastructure.Data;
@@ -28,6 +29,9 @@ builder.Services.AddScoped<IGameAnalysisService, GameAnalysisService>();
 builder.Services.AddScoped<IMatchmakingService, MatchmakingService>();
 builder.Services.AddScoped<IStockfishService, StockfishService>();
 builder.Services.AddSingleton<IGameSessionService, GameSessionService>();
+
+// Background watcher that finalizes games whose clocks have flagged.
+builder.Services.AddHostedService<ClockWatcherService>();
 
 // SignalR
 builder.Services.AddSignalR();

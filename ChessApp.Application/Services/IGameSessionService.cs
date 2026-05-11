@@ -10,7 +10,11 @@ public interface IGameSessionService
         int whiteElo,
         Guid blackUserId,
         string blackUsername,
-        int blackElo);
+        int blackElo,
+        OnlineTimeControl timeControl);
+
+    /// Returns all sessions that are currently in progress (not finished).
+    IEnumerable<OnlineGameSession> GetActiveSessions();
 
     OnlineGameSession? GetSession(Guid gameId);
     OnlineGameSession? GetActiveSessionForUser(Guid userId);
