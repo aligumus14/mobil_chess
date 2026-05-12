@@ -40,7 +40,8 @@ class OfflineGameState {
   });
 
   factory OfflineGameState.empty() {
-    const initialFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    const initialFen =
+        'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
     return OfflineGameState(
       settings: const GameSettings(),
       playerSide: ch.Color.WHITE,
@@ -64,8 +65,9 @@ class OfflineGameState {
   bool get isGameOver => result != null;
   bool get hasClock => settings.timeControl.initialDuration != null;
 
-  fcb.PlayerColor get boardOrientation =>
-      playerSide == ch.Color.WHITE ? fcb.PlayerColor.white : fcb.PlayerColor.black;
+  fcb.PlayerColor get boardOrientation => playerSide == ch.Color.WHITE
+      ? fcb.PlayerColor.white
+      : fcb.PlayerColor.black;
 
   OfflineGameState copyWith({
     GameSettings? settings,
@@ -81,25 +83,25 @@ class OfflineGameState {
     GameResult? result,
     bool? initialized,
     bool clearResult = false,
-  }) =>
-      OfflineGameState(
-        settings: settings ?? this.settings,
-        playerSide: playerSide ?? this.playerSide,
-        startFen: startFen ?? this.startFen,
-        fen: fen ?? this.fen,
-        startedAt: startedAt ?? this.startedAt,
-        playerTimeLeft: playerTimeLeft ?? this.playerTimeLeft,
-        botTimeLeft: botTimeLeft ?? this.botTimeLeft,
-        moveHistory: moveHistory ?? this.moveHistory,
-        sanHistory: sanHistory ?? this.sanHistory,
-        botThinking: botThinking ?? this.botThinking,
-        result: clearResult ? null : (result ?? this.result),
-        initialized: initialized ?? this.initialized,
-      );
+  }) => OfflineGameState(
+    settings: settings ?? this.settings,
+    playerSide: playerSide ?? this.playerSide,
+    startFen: startFen ?? this.startFen,
+    fen: fen ?? this.fen,
+    startedAt: startedAt ?? this.startedAt,
+    playerTimeLeft: playerTimeLeft ?? this.playerTimeLeft,
+    botTimeLeft: botTimeLeft ?? this.botTimeLeft,
+    moveHistory: moveHistory ?? this.moveHistory,
+    sanHistory: sanHistory ?? this.sanHistory,
+    botThinking: botThinking ?? this.botThinking,
+    result: clearResult ? null : (result ?? this.result),
+    initialized: initialized ?? this.initialized,
+  );
 }
 
 class OfflineGameController extends Notifier<OfflineGameState> {
-  static const _initialFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+  static const _initialFen =
+      'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
   late ch.Chess _game;
   late fcb.ChessBoardController boardController;
   final _rand = Random();
@@ -245,12 +247,18 @@ class OfflineGameController extends Notifier<OfflineGameState> {
         continue;
       }
 
-      final movePromotion = move.promotion?.toString().split('.').last.toLowerCase();
+      final movePromotion = move.promotion
+          ?.toString()
+          .split('.')
+          .last
+          .toLowerCase();
       if ((promotion == null || promotion.isEmpty) && movePromotion == null) {
         return move;
       }
 
-      if (promotion != null && movePromotion != null && movePromotion.startsWith(promotion)) {
+      if (promotion != null &&
+          movePromotion != null &&
+          movePromotion.startsWith(promotion)) {
         return move;
       }
     }
@@ -264,7 +272,10 @@ class OfflineGameController extends Notifier<OfflineGameState> {
       return;
     }
 
-    _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) => _tickClock());
+    _clockTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (_) => _tickClock(),
+    );
   }
 
   void _tickClock() {
@@ -276,9 +287,12 @@ class OfflineGameController extends Notifier<OfflineGameState> {
     if (activeTurn == state.playerSide) {
       final next = state.playerTimeLeft - const Duration(seconds: 1);
       if (next <= Duration.zero) {
-        final outcome =
-            state.playerSide == ch.Color.WHITE ? GameOutcome.blackWin : GameOutcome.whiteWin;
-        _finishGame(GameResult(outcome: outcome, reason: 'Time out', playerWon: false));
+        final outcome = state.playerSide == ch.Color.WHITE
+            ? GameOutcome.blackWin
+            : GameOutcome.whiteWin;
+        _finishGame(
+          GameResult(outcome: outcome, reason: 'Time out', playerWon: false),
+        );
         state = state.copyWith(playerTimeLeft: Duration.zero);
         return;
       }
@@ -288,9 +302,12 @@ class OfflineGameController extends Notifier<OfflineGameState> {
 
     final next = state.botTimeLeft - const Duration(seconds: 1);
     if (next <= Duration.zero) {
-      final outcome =
-          state.playerSide == ch.Color.WHITE ? GameOutcome.whiteWin : GameOutcome.blackWin;
-      _finishGame(GameResult(outcome: outcome, reason: 'Time out', playerWon: true));
+      final outcome = state.playerSide == ch.Color.WHITE
+          ? GameOutcome.whiteWin
+          : GameOutcome.blackWin;
+      _finishGame(
+        GameResult(outcome: outcome, reason: 'Time out', playerWon: true),
+      );
       state = state.copyWith(botTimeLeft: Duration.zero);
       return;
     }
@@ -340,7 +357,9 @@ class OfflineGameController extends Notifier<OfflineGameState> {
 
     if (_game.in_checkmate) {
       final loser = _game.turn;
-      outcome = loser == ch.Color.WHITE ? GameOutcome.blackWin : GameOutcome.whiteWin;
+      outcome = loser == ch.Color.WHITE
+          ? GameOutcome.blackWin
+          : GameOutcome.whiteWin;
       reason = 'Checkmate';
     } else if (_game.in_stalemate) {
       outcome = GameOutcome.draw;
@@ -359,10 +378,13 @@ class OfflineGameController extends Notifier<OfflineGameState> {
     }
 
     final playerWon =
-        (outcome == GameOutcome.whiteWin && state.playerSide == ch.Color.WHITE) ||
+        (outcome == GameOutcome.whiteWin &&
+            state.playerSide == ch.Color.WHITE) ||
         (outcome == GameOutcome.blackWin && state.playerSide == ch.Color.BLACK);
 
-    _finishGame(GameResult(outcome: outcome, reason: reason, playerWon: playerWon));
+    _finishGame(
+      GameResult(outcome: outcome, reason: reason, playerWon: playerWon),
+    );
     return true;
   }
 
@@ -371,9 +393,12 @@ class OfflineGameController extends Notifier<OfflineGameState> {
       return;
     }
 
-    final outcome =
-        state.playerSide == ch.Color.WHITE ? GameOutcome.blackWin : GameOutcome.whiteWin;
-    _finishGame(GameResult(outcome: outcome, reason: 'Resigned', playerWon: false));
+    final outcome = state.playerSide == ch.Color.WHITE
+        ? GameOutcome.blackWin
+        : GameOutcome.whiteWin;
+    _finishGame(
+      GameResult(outcome: outcome, reason: 'Resigned', playerWon: false),
+    );
   }
 
   void restart() {
@@ -511,12 +536,7 @@ class OfflineGameController extends Notifier<OfflineGameState> {
     ]);
 
     if (state.startFen != _initialFen) {
-      snapshot.set_header([
-        'SetUp',
-        '1',
-        'FEN',
-        state.startFen,
-      ]);
+      snapshot.set_header(['SetUp', '1', 'FEN', state.startFen]);
     }
   }
 
@@ -529,6 +549,7 @@ class OfflineGameController extends Notifier<OfflineGameState> {
   }
 }
 
-final offlineGameProvider = NotifierProvider<OfflineGameController, OfflineGameState>(
-  OfflineGameController.new,
-);
+final offlineGameProvider =
+    NotifierProvider<OfflineGameController, OfflineGameState>(
+      OfflineGameController.new,
+    );

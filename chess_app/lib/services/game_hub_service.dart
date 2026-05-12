@@ -19,8 +19,7 @@ class GameHubService {
 
   GameHubService(this._storage);
 
-  bool get isConnected =>
-      _connection?.state == HubConnectionState.Connected;
+  bool get isConnected => _connection?.state == HubConnectionState.Connected;
 
   String _resolveHubUrl() {
     if (kIsWeb) return ApiConstants.gameHubWeb;
@@ -77,7 +76,11 @@ class GameHubService {
     );
   }
 
-  Future<void> reportGameEnd(String gameId, String result, String reason) async {
+  Future<void> reportGameEnd(
+    String gameId,
+    String result,
+    String reason,
+  ) async {
     await _connection?.invoke('ReportGameEnd', args: [gameId, result, reason]);
   }
 

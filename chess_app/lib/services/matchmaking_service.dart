@@ -31,20 +31,20 @@ class JoinQueueResult {
   });
 
   factory JoinQueueResult.fromJson(Map<String, dynamic> j) => JoinQueueResult(
-        matched: j['matched'] as bool? ?? false,
-        resumed: j['resumed'] as bool? ?? false,
-        gameId: j['gameId'] as String?,
-        opponentId: j['opponentId'] as String?,
-        opponentUsername: j['opponentUsername'] as String?,
-        opponentElo: j['opponentElo'] as int?,
-        assignedColor: j['assignedColor'] as String?,
-        startFen: j['startFen'] as String?,
-        timeControl: j['timeControl'] == null
-            ? null
-            : OnlineTimeControl.fromWire(j['timeControl'] as int?),
-        initialSeconds: j['initialSeconds'] as int?,
-        incrementSeconds: j['incrementSeconds'] as int?,
-      );
+    matched: j['matched'] as bool? ?? false,
+    resumed: j['resumed'] as bool? ?? false,
+    gameId: j['gameId'] as String?,
+    opponentId: j['opponentId'] as String?,
+    opponentUsername: j['opponentUsername'] as String?,
+    opponentElo: j['opponentElo'] as int?,
+    assignedColor: j['assignedColor'] as String?,
+    startFen: j['startFen'] as String?,
+    timeControl: j['timeControl'] == null
+        ? null
+        : OnlineTimeControl.fromWire(j['timeControl'] as int?),
+    initialSeconds: j['initialSeconds'] as int?,
+    incrementSeconds: j['incrementSeconds'] as int?,
+  );
 }
 
 class MatchmakingStatus {
@@ -60,9 +60,12 @@ class MatchmakingStatus {
     this.activeGameId,
   });
 
-  factory MatchmakingStatus.fromJson(Map<String, dynamic> j) => MatchmakingStatus(
+  factory MatchmakingStatus.fromJson(Map<String, dynamic> j) =>
+      MatchmakingStatus(
         inQueue: j['inQueue'] as bool? ?? false,
-        queuedAt: j['queuedAt'] == null ? null : DateTime.tryParse(j['queuedAt'] as String),
+        queuedAt: j['queuedAt'] == null
+            ? null
+            : DateTime.tryParse(j['queuedAt'] as String),
         eloSnapshot: j['eloSnapshot'] as int?,
         activeGameId: j['activeGameId'] as String?,
       );

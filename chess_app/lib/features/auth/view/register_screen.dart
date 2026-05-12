@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/chess_ui.dart';
 import '../provider/auth_providers.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -32,11 +35,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
 
-    final success = await ref.read(authNotifierProvider.notifier).register(
-      username: _usernameCtrl.text.trim(),
-      email: _emailCtrl.text.trim(),
-      password: _passwordCtrl.text,
-    );
+    final success = await ref
+        .read(authNotifierProvider.notifier)
+        .register(
+          username: _usernameCtrl.text.trim(),
+          email: _emailCtrl.text.trim(),
+          password: _passwordCtrl.text,
+        );
 
     if (!mounted) return;
     setState(() => _loading = false);
@@ -44,7 +49,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (success) {
       context.go('/home');
     } else {
-      final err = ref.read(authNotifierProvider).errorMessage ?? 'Kayıt başarısız';
+      final err =
+          ref.read(authNotifierProvider).errorMessage ?? 'Kayit basarisiz';
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
     }
   }
@@ -52,87 +58,103 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Kayıt Ol')),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Yeni hesap oluştur',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 32),
-                  TextFormField(
-                    controller: _usernameCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Kullanıcı Adı',
-                      prefixIcon: Icon(Icons.person_outline),
+      appBar: AppBar(
+        leading: const BackButton(),
+        title: const Text('Kayit Ol'),
+      ),
+      body: ChessBackground(
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(28),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Icon(
+                      Icons.castle_outlined,
+                      size: 72,
+                      color: AppColors.textPrimary,
                     ),
-                    validator: (v) =>
-                        v == null || v.length < 3 ? 'En az 3 karakter' : null,
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _emailCtrl,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'E-posta',
-                      prefixIcon: Icon(Icons.email_outlined),
-                    ),
-                    validator: (v) {
-                      if (v == null || v.isEmpty) return 'E-posta gerekli';
-                      if (!v.contains('@')) return 'Geçersiz e-posta';
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _passwordCtrl,
-                    obscureText: _obscure,
-                    decoration: InputDecoration(
-                      labelText: 'Şifre',
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      suffixIcon: IconButton(
-                        icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off),
-                        onPressed: () => setState(() => _obscure = !_obscure),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Yeni Hesap',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 36,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
-                    validator: (v) =>
-                        v == null || v.length < 6 ? 'En az 6 karakter' : null,
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _passwordConfirmCtrl,
-                    obscureText: _obscure,
-                    decoration: const InputDecoration(
-                      labelText: 'Şifre (Tekrar)',
-                      prefixIcon: Icon(Icons.lock_outline),
+                    const SizedBox(height: 44),
+                    TextFormField(
+                      controller: _usernameCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Kullanici Adi',
+                        prefixIcon: Icon(Icons.person_outline),
+                      ),
+                      validator: (v) =>
+                          v == null || v.length < 3 ? 'En az 3 karakter' : null,
                     ),
-                    validator: (v) =>
-                        v != _passwordCtrl.text ? 'Şifreler uyuşmuyor' : null,
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: _loading ? null : _submit,
-                    child: _loading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Text('Kayıt Ol'),
-                  ),
-                ],
+                    const SizedBox(height: 18),
+                    TextFormField(
+                      controller: _emailCtrl,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: const InputDecoration(
+                        labelText: 'E-posta',
+                        prefixIcon: Icon(Icons.email_outlined),
+                      ),
+                      validator: (v) {
+                        if (v == null || v.isEmpty) return 'E-posta gerekli';
+                        if (!v.contains('@')) return 'Gecersiz e-posta';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 18),
+                    TextFormField(
+                      controller: _passwordCtrl,
+                      obscureText: _obscure,
+                      decoration: InputDecoration(
+                        labelText: 'Sifre',
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscure ? Icons.visibility : Icons.visibility_off,
+                          ),
+                          onPressed: () => setState(() => _obscure = !_obscure),
+                        ),
+                      ),
+                      validator: (v) =>
+                          v == null || v.length < 6 ? 'En az 6 karakter' : null,
+                    ),
+                    const SizedBox(height: 18),
+                    TextFormField(
+                      controller: _passwordConfirmCtrl,
+                      obscureText: _obscure,
+                      decoration: const InputDecoration(
+                        labelText: 'Sifre (Tekrar)',
+                        prefixIcon: Icon(Icons.lock_outline),
+                      ),
+                      validator: (v) =>
+                          v != _passwordCtrl.text ? 'Sifreler uyusmuyor' : null,
+                    ),
+                    const SizedBox(height: 30),
+                    FilledButton(
+                      onPressed: _loading ? null : _submit,
+                      child: _loading
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.4,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text('Kayit Ol'),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

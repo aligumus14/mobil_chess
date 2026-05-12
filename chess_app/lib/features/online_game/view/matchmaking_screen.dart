@@ -1,7 +1,11 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/chess_ui.dart';
 import '../../../services/matchmaking_service.dart';
 import '../../auth/provider/auth_providers.dart';
 import '../logic/online_time_control.dart';
@@ -27,7 +31,7 @@ class _MatchmakingScreenState extends ConsumerState<MatchmakingScreen> {
   }
 
   Future<void> _join() async {
-    if (_busy) return;
+    if (_busy || _inQueue) return;
     setState(() {
       _busy = true;
       _error = null;
@@ -110,146 +114,251 @@ class _MatchmakingScreenState extends ConsumerState<MatchmakingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Online Eslesme')),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: _inQueue ? _buildQueueing() : _buildPicker(),
+      appBar: AppBar(
+        leading: const BackButton(),
+        title: const Row(
+          children: [
+            Icon(
+              Icons.local_fire_department_rounded,
+              color: AppColors.textPrimary,
+            ),
+            SizedBox(width: 8),
+            Text('Online Eslesme'),
+          ],
+        ),
+      ),
+      bottomNavigationBar: const ChessBottomNav(currentIndex: 0),
+      body: ChessBackground(
+        child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 22, 20, 26),
+            children: [
+              ..._buildTempoSections(),
+              const SizedBox(height: 28),
+              FilledButton(
+                onPressed: _busy || _inQueue ? null : _join,
+                child: _busy
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.4,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text('${_selectedTempo.label} ile esles'),
+              ),
+              if (_error != null) ...[
+                const SizedBox(height: 14),
+                ChessPanel(
+                  color: AppColors.error.withValues(alpha: 0.12),
+                  border: Border.all(
+                    color: AppColors.error.withValues(alpha: 0.35),
+                  ),
+                  child: Text(
+                    _error!,
+                    style: const TextStyle(color: AppColors.textPrimary),
+                  ),
+                ),
+              ],
+              if (_inQueue) ...[
+                const SizedBox(height: 22),
+                _QueueCard(tempo: _selectedTempo, onCancel: _leave),
+              ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildPicker() {
+  List<Widget> _buildTempoSections() {
     final groups = <String, List<OnlineTimeControl>>{};
     for (final tc in OnlineTimeControl.values) {
       groups.putIfAbsent(tc.category, () => []).add(tc);
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const Text(
-          'Tempo Sec',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+    final children = <Widget>[];
+    for (final entry in groups.entries) {
+      if (children.isNotEmpty) {
+        children.add(const SizedBox(height: 26));
+        children.add(const Divider(height: 1));
+        children.add(const SizedBox(height: 26));
+      }
+
+      children.add(
+        SectionTitle(title: entry.key, icon: _categoryIcon(entry.key)),
+      );
+      children.add(const SizedBox(height: 14));
+      children.add(
+        _TempoGrid(
+          tempos: entry.value,
+          selectedTempo: _selectedTempo,
+          enabled: !_inQueue && !_busy,
+          onSelected: (tempo) => setState(() => _selectedTempo = tempo),
         ),
-        const SizedBox(height: 4),
-        const Text(
-          'Sectigin tempoda baska bir oyuncuyla eslesirsin.',
-          style: TextStyle(color: Colors.black54),
-        ),
-        const SizedBox(height: 20),
-        Expanded(
-          child: ListView(
-            children: [
-              for (final entry in groups.entries) ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Text(
-                    entry.key,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black54,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: entry.value
-                      .map((tc) => _TempoChip(
-                            tempo: tc,
-                            selected: _selectedTempo == tc,
-                            onTap: () => setState(() => _selectedTempo = tc),
-                          ))
-                      .toList(),
-                ),
-              ],
-            ],
-          ),
-        ),
-        if (_error != null) ...[
-          Text(_error!, style: const TextStyle(color: Colors.red)),
-          const SizedBox(height: 12),
-        ],
-        FilledButton.icon(
-          onPressed: _busy ? null : _join,
-          icon: const Icon(Icons.play_arrow_rounded),
-          label: Text('${_selectedTempo.label} ile Esles'),
-          style: FilledButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-          ),
-        ),
-      ],
-    );
+      );
+    }
+    return children;
   }
 
-  Widget _buildQueueing() {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const CircularProgressIndicator(),
-          const SizedBox(height: 24),
-          Text(
-            '${_selectedTempo.label} icin rakip araniyor...',
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Ayni tempoyu secen oyuncular ELO yakinligina gore oncelikli eslesir.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.black54),
-          ),
-          const SizedBox(height: 32),
-          OutlinedButton.icon(
-            onPressed: _leave,
-            icon: const Icon(Icons.close),
-            label: const Text('Iptal'),
-          ),
-        ],
+  IconData _categoryIcon(String category) {
+    return switch (category) {
+      'Blitz' => Icons.bolt_rounded,
+      'Rapid' => Icons.timer_outlined,
+      _ => Icons.military_tech_outlined,
+    };
+  }
+}
+
+class _TempoGrid extends StatelessWidget {
+  final List<OnlineTimeControl> tempos;
+  final OnlineTimeControl selectedTempo;
+  final bool enabled;
+  final ValueChanged<OnlineTimeControl> onSelected;
+
+  const _TempoGrid({
+    required this.tempos,
+    required this.selectedTempo,
+    required this.enabled,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: tempos.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
+        childAspectRatio: 1.78,
       ),
+      itemBuilder: (context, index) {
+        final tempo = tempos[index];
+        return _TempoCard(
+          tempo: tempo,
+          selected: selectedTempo == tempo,
+          enabled: enabled,
+          onTap: () => onSelected(tempo),
+        );
+      },
     );
   }
 }
 
-class _TempoChip extends StatelessWidget {
+class _TempoCard extends StatelessWidget {
   final OnlineTimeControl tempo;
   final bool selected;
+  final bool enabled;
   final VoidCallback onTap;
 
-  const _TempoChip({
+  const _TempoCard({
     required this.tempo,
     required this.selected,
+    required this.enabled,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-        decoration: BoxDecoration(
-          color: selected ? scheme.primary : scheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: selected ? scheme.primary : scheme.outlineVariant,
-            width: 1.5,
+    final color = selected ? AppColors.primary : AppColors.surface;
+    final textColor = selected ? Colors.white : AppColors.textPrimary;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: enabled ? onTap : null,
+        borderRadius: BorderRadius.circular(14),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: selected ? AppColors.primary : AppColors.divider,
+            ),
+          ),
+          child: Text(
+            tempo.label,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 21,
+              fontWeight: FontWeight.w900,
+            ),
           ),
         ),
-        child: Text(
-          tempo.label,
-          style: TextStyle(
-            color: selected ? scheme.onPrimary : scheme.onSurface,
-            fontWeight: FontWeight.w800,
-            fontSize: 16,
+      ),
+    );
+  }
+}
+
+class _QueueCard extends StatelessWidget {
+  final OnlineTimeControl tempo;
+  final VoidCallback onCancel;
+
+  const _QueueCard({required this.tempo, required this.onCancel});
+
+  @override
+  Widget build(BuildContext context) {
+    return ChessPanel(
+      padding: const EdgeInsets.all(26),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const SizedBox(
+                width: 72,
+                height: 72,
+                child: CircularProgressIndicator(
+                  strokeWidth: 7,
+                  color: AppColors.primary,
+                  backgroundColor: AppColors.surfaceStrong,
+                ),
+              ),
+              const SizedBox(width: 24),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Rakip araniyor',
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.timer_outlined,
+                          color: AppColors.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          tempo.label,
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ),
+          const SizedBox(height: 24),
+          OutlinedButton(onPressed: onCancel, child: const Text('Iptal')),
+        ],
       ),
     );
   }

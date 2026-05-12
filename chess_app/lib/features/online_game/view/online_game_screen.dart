@@ -42,29 +42,37 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen> {
     ref.listen(onlineGameProvider, (prev, next) {
       if (!_endDialogShown && next.finished && next.resultLabel != null) {
         _endDialogShown = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) => _showEndDialog(next));
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => _showEndDialog(next),
+        );
       }
 
       if (!_drawDialogShown &&
           next.drawOfferReceived &&
           prev?.drawOfferReceived != true) {
         _drawDialogShown = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) => _showDrawOfferDialog(controller));
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => _showDrawOfferDialog(controller),
+        );
       }
 
       if (!_sessionMissingDialogShown &&
           next.sessionMissing &&
           prev?.sessionMissing != true) {
         _sessionMissingDialogShown = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) => _showSessionMissingDialog());
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => _showSessionMissingDialog(),
+        );
       }
     });
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(state.opponentUsername == null
-            ? 'Online Mac'
-            : '${state.opponentUsername} (${state.opponentElo ?? '-'})'),
+        title: Text(
+          state.opponentUsername == null
+              ? 'Online Mac'
+              : '${state.opponentUsername} (${state.opponentElo ?? '-'})',
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.handshake_outlined),
@@ -165,7 +173,9 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Beraberlik Teklifi'),
-        content: const Text('Rakibin beraberlik teklif etti. Kabul ediyor musun?'),
+        content: const Text(
+          'Rakibin beraberlik teklif etti. Kabul ediyor musun?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -202,8 +212,7 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (reasonLabel != null)
-              Text('Sebep: $reasonLabel'),
+            if (reasonLabel != null) Text('Sebep: $reasonLabel'),
             const SizedBox(height: 8),
             Text('ELO degisimi: $sign$yourDelta'),
           ],
@@ -309,11 +318,11 @@ class _StatusCard extends StatelessWidget {
                   : (state.isYourTurn ? Icons.play_arrow : Icons.hourglass_top),
             ),
             const SizedBox(width: 12),
-            Expanded(
-              child: Text(title, style: const TextStyle(fontSize: 16)),
+            Expanded(child: Text(title, style: const TextStyle(fontSize: 16))),
+            Text(
+              state.yourColor ?? '-',
+              style: const TextStyle(fontWeight: FontWeight.w500),
             ),
-            Text(state.yourColor ?? '-',
-                style: const TextStyle(fontWeight: FontWeight.w500)),
           ],
         ),
       ),
@@ -343,9 +352,7 @@ class _ClockRow extends StatelessWidget {
     final isActive = !state.finished && state.currentTurn == side;
     final low = ms <= 10000;
 
-    final label = forOpponent
-        ? (state.opponentUsername ?? 'Rakip')
-        : 'Sen';
+    final label = forOpponent ? (state.opponentUsername ?? 'Rakip') : 'Sen';
 
     final bg = isActive
         ? (low ? Colors.red.shade50 : Colors.green.shade50)
@@ -366,18 +373,12 @@ class _ClockRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(
-            forOpponent ? Icons.person_outline : Icons.person,
-            color: fg,
-          ),
+          Icon(forOpponent ? Icons.person_outline : Icons.person, color: fg),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               label,
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                color: fg,
-              ),
+              style: TextStyle(fontWeight: FontWeight.w700, color: fg),
             ),
           ),
           Text(

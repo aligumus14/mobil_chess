@@ -26,9 +26,7 @@ class _OfflineGameScreenState extends ConsumerState<OfflineGameScreen> {
     final controller = ref.read(offlineGameProvider.notifier);
 
     if (!gameState.initialized) {
-      return const Scaffold(
-        body: Center(child: Text('Oyun baslatilmadi.')),
-      );
+      return const Scaffold(body: Center(child: Text('Oyun baslatilmadi.')));
     }
 
     ref.listen(offlineGameProvider, (prev, next) {
@@ -43,9 +41,15 @@ class _OfflineGameScreenState extends ConsumerState<OfflineGameScreen> {
       }
     });
 
-    final boardSize = MediaQuery.sizeOf(context).width.clamp(300.0, 520.0).toDouble();
-    final playerName = gameState.playerSide == ch.Color.WHITE ? 'Sen' : 'Stockfish';
-    final opponentName = gameState.playerSide == ch.Color.WHITE ? 'Stockfish' : 'Sen';
+    final boardSize = MediaQuery.sizeOf(
+      context,
+    ).width.clamp(300.0, 520.0).toDouble();
+    final playerName = gameState.playerSide == ch.Color.WHITE
+        ? 'Sen'
+        : 'Stockfish';
+    final opponentName = gameState.playerSide == ch.Color.WHITE
+        ? 'Stockfish'
+        : 'Sen';
 
     return Scaffold(
       appBar: AppBar(
@@ -78,7 +82,9 @@ class _OfflineGameScreenState extends ConsumerState<OfflineGameScreen> {
           IconButton(
             icon: const Icon(Icons.flag_outlined),
             tooltip: 'Pes Et',
-            onPressed: gameState.isGameOver ? null : () => _confirmResign(controller),
+            onPressed: gameState.isGameOver
+                ? null
+                : () => _confirmResign(controller),
           ),
         ],
       ),
@@ -89,7 +95,9 @@ class _OfflineGameScreenState extends ConsumerState<OfflineGameScreen> {
           const SizedBox(height: 14),
           _ClockCard(
             label: opponentName,
-            subtitle: gameState.playerSide == ch.Color.WHITE ? 'Siyah' : 'Beyaz',
+            subtitle: gameState.playerSide == ch.Color.WHITE
+                ? 'Siyah'
+                : 'Beyaz',
             timeLeft: gameState.botTimeLeft,
             showClock: gameState.hasClock,
             active: !gameState.isPlayerTurn && !gameState.isGameOver,
@@ -127,7 +135,9 @@ class _OfflineGameScreenState extends ConsumerState<OfflineGameScreen> {
           const SizedBox(height: 12),
           _ClockCard(
             label: playerName,
-            subtitle: gameState.playerSide == ch.Color.WHITE ? 'Beyaz' : 'Siyah',
+            subtitle: gameState.playerSide == ch.Color.WHITE
+                ? 'Beyaz'
+                : 'Siyah',
             timeLeft: gameState.playerTimeLeft,
             showClock: gameState.hasClock,
             active: gameState.isPlayerTurn && !gameState.isGameOver,
@@ -146,7 +156,9 @@ class _OfflineGameScreenState extends ConsumerState<OfflineGameScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Pes etmek istiyor musun?'),
-        content: const Text('Maci simdi bitirip yeni bir kurulum ekranina donebilirsin.'),
+        content: const Text(
+          'Maci simdi bitirip yeni bir kurulum ekranina donebilirsin.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -228,7 +240,9 @@ class _ClockCard extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: active ? Colors.white.withValues(alpha: 0.14) : AppColors.surfaceStrong,
+              color: active
+                  ? Colors.white.withValues(alpha: 0.14)
+                  : AppColors.surfaceStrong,
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(leading, color: foreground),
@@ -259,7 +273,9 @@ class _ClockCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: active ? Colors.white.withValues(alpha: 0.12) : AppColors.surfaceStrong,
+              color: active
+                  ? Colors.white.withValues(alpha: 0.12)
+                  : AppColors.surfaceStrong,
               borderRadius: BorderRadius.circular(14),
             ),
             child: Text(

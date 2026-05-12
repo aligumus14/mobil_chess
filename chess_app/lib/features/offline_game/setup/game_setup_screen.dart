@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/chess_ui.dart';
 import '../logic/game_models.dart';
 import '../provider/offline_game_controller.dart';
 
@@ -13,278 +15,316 @@ class GameSetupScreen extends ConsumerStatefulWidget {
 }
 
 class _GameSetupScreenState extends ConsumerState<GameSetupScreen> {
-  PlayerColor _color = PlayerColor.white;
+  PlayerColor _color = PlayerColor.random;
   BotDifficulty _difficulty = BotDifficulty.medium;
-  GameTimeControl _timeControl = GameTimeControl.unlimited;
+  GameTimeControl _timeControl = GameTimeControl.blitz5;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Yeni Oyun Kurulumu')),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      appBar: AppBar(
+        leading: const BackButton(),
+        title: const Text('Botla Oyna'),
+      ),
+      body: ChessBackground(
+        child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 26, 20, 28),
+            children: [
+              const SectionTitle(title: 'Renk Sec'),
+              const SizedBox(height: 14),
+              _SegmentedControl<PlayerColor>(
+                value: _color,
+                options: const [
+                  _SegmentOption(
+                    value: PlayerColor.white,
+                    label: 'Beyaz',
+                    icon: Icons.circle,
+                  ),
+                  _SegmentOption(
+                    value: PlayerColor.black,
+                    label: 'Siyah',
+                    icon: Icons.circle_outlined,
+                  ),
+                  _SegmentOption(
+                    value: PlayerColor.random,
+                    label: 'Rastgele',
+                    icon: Icons.shuffle_rounded,
+                  ),
+                ],
+                onChanged: (value) => setState(() => _color = value),
+              ),
+              const SizedBox(height: 34),
+              const SectionTitle(title: 'Zorluk'),
+              const SizedBox(height: 14),
+              _SegmentedControl<BotDifficulty>(
+                value: _difficulty,
+                options: BotDifficulty.values
+                    .map(
+                      (item) => _SegmentOption(value: item, label: item.label),
+                    )
+                    .toList(),
+                onChanged: (value) => setState(() => _difficulty = value),
+              ),
+              const SizedBox(height: 34),
+              const SectionTitle(title: 'Tempo'),
+              const SizedBox(height: 14),
+              _SegmentedControl<GameTimeControl>(
+                value: _timeControl,
+                options: GameTimeControl.values
+                    .map(
+                      (item) =>
+                          _SegmentOption(value: item, label: _timeLabel(item)),
+                    )
+                    .toList(),
+                onChanged: (value) => setState(() => _timeControl = value),
+              ),
+              const SizedBox(height: 34),
+              _BotSummary(difficulty: _difficulty, timeControl: _timeControl),
+              const SizedBox(height: 44),
+              FilledButton.icon(
+                onPressed: _startGame,
+                icon: const Icon(Icons.sports_martial_arts_rounded),
+                label: const Text('Oyunu Baslat'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  static String _timeLabel(GameTimeControl value) {
+    return switch (value) {
+      GameTimeControl.unlimited => 'Suresiz',
+      GameTimeControl.blitz5 => '5+0',
+      GameTimeControl.rapid10 => '10+0',
+    };
+  }
+
+  void _startGame() {
+    ref
+        .read(offlineGameProvider.notifier)
+        .startNewGame(
+          GameSettings(
+            playerColor: _color,
+            difficulty: _difficulty,
+            timeControl: _timeControl,
+          ),
+        );
+    context.push('/offline-game');
+  }
+}
+
+class _BotSummary extends StatelessWidget {
+  final BotDifficulty difficulty;
+  final GameTimeControl timeControl;
+
+  const _BotSummary({required this.difficulty, required this.timeControl});
+
+  @override
+  Widget build(BuildContext context) {
+    return ChessPanel(
+      padding: const EdgeInsets.all(22),
+      child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(20),
+            width: 92,
+            height: 92,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppColors.primaryDark, AppColors.primary],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(28),
+              color: AppColors.surfaceStrong,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.divider),
             ),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: const Icon(
+              Icons.smart_toy_outlined,
+              color: AppColors.textPrimary,
+              size: 48,
+            ),
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
               children: [
-                Text(
-                  'Stockfish Arena',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                  ),
+                _SummaryRow(
+                  icon: Icons.smart_toy_outlined,
+                  label: 'Rakip:',
+                  value: 'Stockfish',
                 ),
-                SizedBox(height: 8),
-                Text(
-                  'Renkini, zorlugu ve sure formatini sec. Ardindan modern oyun ekraninda dogrudan maca basla.',
-                  style: TextStyle(color: Colors.white70, height: 1.4),
+                const Divider(height: 22),
+                _SummaryRow(
+                  icon: Icons.signal_cellular_alt_rounded,
+                  label: 'Seviye:',
+                  value: difficulty.label,
+                  accent: true,
+                ),
+                const Divider(height: 22),
+                _SummaryRow(
+                  icon: Icons.schedule_rounded,
+                  label: 'Tempo:',
+                  value: GameSetupScreenLabel.timeLabel(timeControl),
+                  accent: true,
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 24),
-          const _SectionTitle(
-            title: 'Renk Secimi',
-            subtitle: 'Beyaz, siyah veya rastgele baslangic',
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(child: _colorTile(PlayerColor.white, 'Beyaz', Icons.circle_outlined)),
-              const SizedBox(width: 10),
-              Expanded(child: _colorTile(PlayerColor.black, 'Siyah', Icons.circle)),
-              const SizedBox(width: 10),
-              Expanded(child: _colorTile(PlayerColor.random, 'Rastgele', Icons.shuffle_rounded)),
-            ],
-          ),
-          const SizedBox(height: 24),
-          const _SectionTitle(
-            title: 'Zorluk Seviyesi',
-            subtitle: 'Stockfish dusunme suresi burada belirlenir',
-          ),
-          const SizedBox(height: 10),
-          ...BotDifficulty.values.map(_difficultyTile),
-          const SizedBox(height: 24),
-          const _SectionTitle(
-            title: 'Sure Formati',
-            subtitle: 'Sureli veya limitsiz oyun sec',
-          ),
-          const SizedBox(height: 10),
-          ...GameTimeControl.values.map(_timeTile),
-          const SizedBox(height: 28),
-          ElevatedButton.icon(
-            onPressed: _startGame,
-            icon: const Icon(Icons.play_arrow_rounded),
-            label: const Text('Maci Baslat'),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _colorTile(PlayerColor value, String label, IconData icon) {
-    final selected = _color == value;
-    return InkWell(
-      onTap: () => setState(() => _color = value),
-      borderRadius: BorderRadius.circular(22),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(vertical: 18),
-        decoration: BoxDecoration(
-          color: selected ? AppColors.primary : AppColors.surface,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: selected ? AppColors.primary : AppColors.divider,
-            width: 2,
-          ),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: selected ? Colors.white : AppColors.textSecondary, size: 28),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: selected ? Colors.white : AppColors.textPrimary,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _difficultyTile(BotDifficulty value) {
-    final selected = _difficulty == value;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: InkWell(
-        onTap: () => setState(() => _difficulty = value),
-        borderRadius: BorderRadius.circular(22),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: selected ? AppColors.surfaceStrong : AppColors.surface,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(
-              color: selected ? AppColors.primary : AppColors.divider,
-              width: selected ? 2 : 1.5,
-            ),
-          ),
-          child: Row(
-            children: [
-              _SelectionIndicator(selected: selected),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      value.label,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      value.description,
-                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _timeTile(GameTimeControl value) {
-    final selected = _timeControl == value;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: InkWell(
-        onTap: () => setState(() => _timeControl = value),
-        borderRadius: BorderRadius.circular(22),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: selected ? AppColors.surfaceStrong : AppColors.surface,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(
-              color: selected ? AppColors.accentDark : AppColors.divider,
-              width: selected ? 2 : 1.5,
-            ),
-          ),
-          child: Row(
-            children: [
-              _SelectionIndicator(
-                selected: selected,
-                color: AppColors.accentDark,
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      value.label,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      value.description,
-                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _startGame() {
-    ref.read(offlineGameProvider.notifier).startNewGame(
-      GameSettings(
-        playerColor: _color,
-        difficulty: _difficulty,
-        timeControl: _timeControl,
-      ),
-    );
-    context.push('/offline-game');
+class GameSetupScreenLabel {
+  static String timeLabel(GameTimeControl value) {
+    return switch (value) {
+      GameTimeControl.unlimited => 'Suresiz',
+      GameTimeControl.blitz5 => '5+0',
+      GameTimeControl.rapid10 => '10+0',
+    };
   }
 }
 
-class _SectionTitle extends StatelessWidget {
-  final String title;
-  final String subtitle;
+class _SummaryRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final bool accent;
 
-  const _SectionTitle({
-    required this.title,
-    required this.subtitle,
+  const _SummaryRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.accent = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
       children: [
+        Icon(icon, color: AppColors.textSecondary, size: 24),
+        const SizedBox(width: 12),
         Text(
-          title,
-          style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800),
+          label,
+          style: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-        const SizedBox(height: 4),
-        Text(
-          subtitle,
-          style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: accent ? AppColors.primary : AppColors.textPrimary,
+              fontSize: 17,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
         ),
       ],
     );
   }
 }
 
-class _SelectionIndicator extends StatelessWidget {
-  final bool selected;
-  final Color color;
+class _SegmentOption<T> {
+  final T value;
+  final String label;
+  final IconData? icon;
 
-  const _SelectionIndicator({
-    required this.selected,
-    this.color = AppColors.primary,
+  const _SegmentOption({required this.value, required this.label, this.icon});
+}
+
+class _SegmentedControl<T> extends StatelessWidget {
+  final T value;
+  final List<_SegmentOption<T>> options;
+  final ValueChanged<T> onChanged;
+
+  const _SegmentedControl({
+    required this.value,
+    required this.options,
+    required this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 180),
-      width: 24,
-      height: 24,
+    return Container(
+      padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: selected ? color : Colors.transparent,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: selected ? color : AppColors.divider,
-          width: 2,
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Row(
+        children: [
+          for (var i = 0; i < options.length; i++) ...[
+            if (i > 0)
+              Container(width: 1, height: 44, color: AppColors.divider),
+            Expanded(
+              child: _SegmentButton<T>(
+                option: options[i],
+                selected: options[i].value == value,
+                onTap: () => onChanged(options[i].value),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _SegmentButton<T> extends StatelessWidget {
+  final _SegmentOption<T> option;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _SegmentButton({
+    required this.option,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = selected ? AppColors.primary : Colors.transparent;
+    final foreground = selected ? Colors.white : AppColors.textPrimary;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(13),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        height: 58,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(13),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (option.icon != null) ...[
+              Icon(option.icon, color: foreground, size: 22),
+              const SizedBox(width: 8),
+            ],
+            Flexible(
+              child: Text(
+                option.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: foreground,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
-      child: selected
-          ? const Icon(Icons.check, color: Colors.white, size: 14)
-          : null,
     );
   }
 }

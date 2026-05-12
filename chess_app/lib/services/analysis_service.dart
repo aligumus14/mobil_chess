@@ -19,7 +19,8 @@ class AnalysisService {
         return GameAnalysis.fromJson(response.data as Map<String, dynamic>);
       }
 
-      throw _extractErrorMessage(response) ?? 'Analysis could not be created (${response.statusCode})';
+      throw _extractErrorMessage(response) ??
+          'Analysis could not be created (${response.statusCode})';
     } on DioException catch (e) {
       throw _extractDioMessage(e);
     }
@@ -33,7 +34,8 @@ class AnalysisService {
         return GameAnalysis.fromJson(response.data as Map<String, dynamic>);
       }
 
-      throw _extractErrorMessage(response) ?? 'Analysis could not be loaded (${response.statusCode})';
+      throw _extractErrorMessage(response) ??
+          'Analysis could not be loaded (${response.statusCode})';
     } on DioException catch (e) {
       throw _extractDioMessage(e);
     }

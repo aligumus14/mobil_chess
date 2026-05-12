@@ -78,7 +78,9 @@ class GameListItem {
     botDifficulty: json['botDifficulty'] as String?,
     moveCount: (json['moveCount'] as int?) ?? 0,
     startedAt: DateTime.parse(json['startedAt'] as String),
-    endedAt: json['endedAt'] == null ? null : DateTime.parse(json['endedAt'] as String),
+    endedAt: json['endedAt'] == null
+        ? null
+        : DateTime.parse(json['endedAt'] as String),
   );
 }
 
@@ -149,7 +151,9 @@ class GameDetail {
     currentFen: json['currentFen'] as String,
     pgn: json['pgn'] as String?,
     startedAt: DateTime.parse(json['startedAt'] as String),
-    endedAt: json['endedAt'] == null ? null : DateTime.parse(json['endedAt'] as String),
+    endedAt: json['endedAt'] == null
+        ? null
+        : DateTime.parse(json['endedAt'] as String),
     moves: ((json['moves'] as List?) ?? const [])
         .map((e) => GameMoveDetail.fromJson(e as Map<String, dynamic>))
         .toList(),

@@ -11,7 +11,9 @@ import '../../../services/matchmaking_service.dart';
 import '../../../services/user_service.dart';
 
 // Core providers
-final secureStorageProvider = Provider<SecureStorageService>((_) => SecureStorageService());
+final secureStorageProvider = Provider<SecureStorageService>(
+  (_) => SecureStorageService(),
+);
 
 final apiServiceProvider = Provider<ApiService>(
   (ref) => ApiService(ref.watch(secureStorageProvider)),

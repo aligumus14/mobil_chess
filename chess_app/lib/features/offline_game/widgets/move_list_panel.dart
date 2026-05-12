@@ -4,10 +4,7 @@ import '../../../core/theme/app_theme.dart';
 class MoveListPanel extends StatelessWidget {
   final List<String> moves;
 
-  const MoveListPanel({
-    super.key,
-    required this.moves,
-  });
+  const MoveListPanel({super.key, required this.moves});
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +25,10 @@ class MoveListPanel extends StatelessWidget {
           children: [
             const Row(
               children: [
-                Icon(Icons.format_list_numbered_rounded, color: AppColors.textPrimary),
+                Icon(
+                  Icons.format_list_numbered_rounded,
+                  color: AppColors.textPrimary,
+                ),
                 SizedBox(width: 10),
                 Text(
                   'Hamle Akisi',
@@ -52,7 +52,10 @@ class MoveListPanel extends StatelessWidget {
                   itemBuilder: (_, index) {
                     final pair = pairs[index];
                     return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.surfaceStrong,
                         borderRadius: BorderRadius.circular(16),
@@ -72,13 +75,17 @@ class MoveListPanel extends StatelessWidget {
                           Expanded(
                             child: Text(
                               pair.white,
-                              style: const TextStyle(fontWeight: FontWeight.w700),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
                           Expanded(
                             child: Text(
                               pair.black ?? '',
-                              style: const TextStyle(fontWeight: FontWeight.w700),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
                         ],

@@ -9,7 +9,10 @@ class GameService {
 
   Future<String> createGame(CreateGamePayload payload) async {
     try {
-      final res = await _api.dio.post(ApiConstants.games, data: payload.toJson());
+      final res = await _api.dio.post(
+        ApiConstants.games,
+        data: payload.toJson(),
+      );
       if (res.statusCode == 201 || res.statusCode == 200) {
         return res.data['id'] as String;
       }

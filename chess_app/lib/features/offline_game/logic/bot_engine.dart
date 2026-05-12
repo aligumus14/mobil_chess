@@ -31,7 +31,8 @@ class BotEngine {
     };
   }
 
-  ch.Move _pickRandom(List<ch.Move> moves) => moves[_rand.nextInt(moves.length)];
+  ch.Move _pickRandom(List<ch.Move> moves) =>
+      moves[_rand.nextInt(moves.length)];
 
   ch.Move _pickBestMaterial(ch.Chess game, List<ch.Move> moves) {
     // Bot'un perspektifinden değerlendir — sıra kimdeyse o
@@ -52,7 +53,11 @@ class BotEngine {
     return best ?? moves.first;
   }
 
-  ch.Move _pickMinimax(ch.Chess game, List<ch.Move> moves, {required int depth}) {
+  ch.Move _pickMinimax(
+    ch.Chess game,
+    List<ch.Move> moves, {
+    required int depth,
+  }) {
     final botColor = game.turn;
     ch.Move? best;
     int bestScore = -999999;
@@ -73,7 +78,13 @@ class BotEngine {
     return best ?? moves.first;
   }
 
-  int _negamax(ch.Chess game, int depth, int alpha, int beta, ch.Color rootColor) {
+  int _negamax(
+    ch.Chess game,
+    int depth,
+    int alpha,
+    int beta,
+    ch.Color rootColor,
+  ) {
     if (depth == 0 || game.game_over) {
       final sign = game.turn == rootColor ? 1 : -1;
       return sign * _evaluate(game, rootColor);

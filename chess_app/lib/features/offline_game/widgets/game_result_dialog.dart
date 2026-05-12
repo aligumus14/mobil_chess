@@ -20,18 +20,18 @@ class GameResultDialog extends StatelessWidget {
     final title = isDraw
         ? 'Berabere'
         : result.playerWon
-            ? 'Kazandin'
-            : 'Kaybettin';
+        ? 'Kazandin'
+        : 'Kaybettin';
     final color = isDraw
         ? AppColors.textSecondary
         : result.playerWon
-            ? AppColors.success
-            : AppColors.error;
+        ? AppColors.success
+        : AppColors.error;
     final icon = isDraw
         ? Icons.handshake_outlined
         : result.playerWon
-            ? Icons.emoji_events_rounded
-            : Icons.sentiment_dissatisfied_rounded;
+        ? Icons.emoji_events_rounded
+        : Icons.sentiment_dissatisfied_rounded;
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),

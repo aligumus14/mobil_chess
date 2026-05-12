@@ -6,10 +6,7 @@ import '../provider/offline_game_controller.dart';
 class StatusBar extends StatelessWidget {
   final OfflineGameState state;
 
-  const StatusBar({
-    super.key,
-    required this.state,
-  });
+  const StatusBar({super.key, required this.state});
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +76,9 @@ class StatusBar extends StatelessWidget {
     if (state.botThinking) {
       return Icons.psychology_alt_rounded;
     }
-    return state.isPlayerTurn ? Icons.touch_app_rounded : Icons.smart_toy_outlined;
+    return state.isPlayerTurn
+        ? Icons.touch_app_rounded
+        : Icons.smart_toy_outlined;
   }
 
   Color _color() {

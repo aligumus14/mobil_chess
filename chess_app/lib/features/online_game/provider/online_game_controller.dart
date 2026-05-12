@@ -64,10 +64,10 @@ class OnlineGameState {
   });
 
   factory OnlineGameState.initial(String gameId) => OnlineGameState(
-        gameId: gameId,
-        fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-        currentTurn: 'white',
-      );
+    gameId: gameId,
+    fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    currentTurn: 'white',
+  );
 
   bool get isYourTurn =>
       !finished && connected && yourColor != null && yourColor == currentTurn;
@@ -90,7 +90,9 @@ class OnlineGameState {
 
   int startupRemainingMs(DateTime now) {
     if (!waitingForStartup || startupDeadlineUtc == null) return 0;
-    final remaining = startupDeadlineUtc!.difference(now.toUtc()).inMilliseconds;
+    final remaining = startupDeadlineUtc!
+        .difference(now.toUtc())
+        .inMilliseconds;
     return remaining < 0 ? 0 : remaining;
   }
 
@@ -118,32 +120,31 @@ class OnlineGameState {
     DateTime? turnStartedAt,
     DateTime? startupDeadlineUtc,
     bool clearError = false,
-  }) =>
-      OnlineGameState(
-        gameId: gameId,
-        yourColor: yourColor ?? this.yourColor,
-        opponentUsername: opponentUsername ?? this.opponentUsername,
-        opponentElo: opponentElo ?? this.opponentElo,
-        fen: fen ?? this.fen,
-        currentTurn: currentTurn ?? this.currentTurn,
-        sanHistory: sanHistory ?? this.sanHistory,
-        connected: connected ?? this.connected,
-        finished: finished ?? this.finished,
-        resultLabel: resultLabel ?? this.resultLabel,
-        terminationReason: terminationReason ?? this.terminationReason,
-        yourDelta: yourDelta ?? this.yourDelta,
-        opponentDelta: opponentDelta ?? this.opponentDelta,
-        errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-        opponentOnline: opponentOnline ?? this.opponentOnline,
-        drawOfferReceived: drawOfferReceived ?? this.drawOfferReceived,
-        drawOfferSent: drawOfferSent ?? this.drawOfferSent,
-        sessionMissing: sessionMissing ?? this.sessionMissing,
-        timeControl: timeControl ?? this.timeControl,
-        whiteRemainingMs: whiteRemainingMs ?? this.whiteRemainingMs,
-        blackRemainingMs: blackRemainingMs ?? this.blackRemainingMs,
-        turnStartedAt: turnStartedAt ?? this.turnStartedAt,
-        startupDeadlineUtc: startupDeadlineUtc ?? this.startupDeadlineUtc,
-      );
+  }) => OnlineGameState(
+    gameId: gameId,
+    yourColor: yourColor ?? this.yourColor,
+    opponentUsername: opponentUsername ?? this.opponentUsername,
+    opponentElo: opponentElo ?? this.opponentElo,
+    fen: fen ?? this.fen,
+    currentTurn: currentTurn ?? this.currentTurn,
+    sanHistory: sanHistory ?? this.sanHistory,
+    connected: connected ?? this.connected,
+    finished: finished ?? this.finished,
+    resultLabel: resultLabel ?? this.resultLabel,
+    terminationReason: terminationReason ?? this.terminationReason,
+    yourDelta: yourDelta ?? this.yourDelta,
+    opponentDelta: opponentDelta ?? this.opponentDelta,
+    errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+    opponentOnline: opponentOnline ?? this.opponentOnline,
+    drawOfferReceived: drawOfferReceived ?? this.drawOfferReceived,
+    drawOfferSent: drawOfferSent ?? this.drawOfferSent,
+    sessionMissing: sessionMissing ?? this.sessionMissing,
+    timeControl: timeControl ?? this.timeControl,
+    whiteRemainingMs: whiteRemainingMs ?? this.whiteRemainingMs,
+    blackRemainingMs: blackRemainingMs ?? this.blackRemainingMs,
+    turnStartedAt: turnStartedAt ?? this.turnStartedAt,
+    startupDeadlineUtc: startupDeadlineUtc ?? this.startupDeadlineUtc,
+  );
 }
 
 class OnlineGameController extends Notifier<OnlineGameState> {
@@ -190,7 +191,8 @@ class OnlineGameController extends Notifier<OnlineGameState> {
       _hub = null;
       _game = ch.Chess();
       boardController.loadFen(
-          'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+        'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+      );
     }
     _started = true;
     state = OnlineGameState.initial(gameId);
@@ -205,8 +207,12 @@ class OnlineGameController extends Notifier<OnlineGameState> {
         ..onGameEnded(_onGameEnded)
         ..onDrawOffered((_) => state = state.copyWith(drawOfferReceived: true))
         ..onMatchFound((_) => state = state.copyWith(clearError: true))
-        ..onOpponentConnected(() => state = state.copyWith(opponentOnline: true))
-        ..onOpponentDisconnected(() => state = state.copyWith(opponentOnline: false))
+        ..onOpponentConnected(
+          () => state = state.copyWith(opponentOnline: true),
+        )
+        ..onOpponentDisconnected(
+          () => state = state.copyWith(opponentOnline: false),
+        )
         ..onReconnecting((_) {
           state = state.copyWith(
             connected: false,
@@ -234,18 +240,21 @@ class OnlineGameController extends Notifier<OnlineGameState> {
 
   void _onGameState(Map<String, dynamic> s) {
     final movesRaw = (s['moves'] as List?) ?? const [];
-    final sans = movesRaw.map((m) => (m as Map)['san']?.toString() ?? '').toList();
+    final sans = movesRaw
+        .map((m) => (m as Map)['san']?.toString() ?? '')
+        .toList();
 
-    final fen = s['currentFen']?.toString() ??
+    final fen =
+        s['currentFen']?.toString() ??
         'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
     _game = ch.Chess.fromFEN(fen);
     boardController.loadFen(fen);
 
     final tc = OnlineTimeControl.fromWire(s['timeControl'] as int?);
-    final whiteMs = (s['whiteRemainingMs'] as num?)?.toInt() ??
-        tc.initialSeconds * 1000;
-    final blackMs = (s['blackRemainingMs'] as num?)?.toInt() ??
-        tc.initialSeconds * 1000;
+    final whiteMs =
+        (s['whiteRemainingMs'] as num?)?.toInt() ?? tc.initialSeconds * 1000;
+    final blackMs =
+        (s['blackRemainingMs'] as num?)?.toInt() ?? tc.initialSeconds * 1000;
     final turnStartedAt = _parseUtc(s['turnStartedAtUtc']) ?? DateTime.now();
     final startupDeadlineUtc = _parseUtc(s['startupDeadlineUtc']);
 
@@ -294,10 +303,10 @@ class OnlineGameController extends Notifier<OnlineGameState> {
     final history = [...state.sanHistory, san];
     final nextTurn = state.currentTurn == 'white' ? 'black' : 'white';
 
-    final whiteMs = (m['whiteRemainingMs'] as num?)?.toInt() ??
-        state.whiteRemainingMs;
-    final blackMs = (m['blackRemainingMs'] as num?)?.toInt() ??
-        state.blackRemainingMs;
+    final whiteMs =
+        (m['whiteRemainingMs'] as num?)?.toInt() ?? state.whiteRemainingMs;
+    final blackMs =
+        (m['blackRemainingMs'] as num?)?.toInt() ?? state.blackRemainingMs;
     final turnStartedAt = _parseUtc(m['turnStartedAtUtc']) ?? DateTime.now();
     final startupDeadlineUtc = _parseUtc(m['startupDeadlineUtc']);
 
@@ -370,7 +379,11 @@ class OnlineGameController extends Notifier<OnlineGameState> {
     ref.invalidate(myGamesProvider);
   }
 
-  String _labelForResult(String serverResult, String? yourColor, String? reason) {
+  String _labelForResult(
+    String serverResult,
+    String? yourColor,
+    String? reason,
+  ) {
     final r = serverResult.toLowerCase();
     final why = reason?.toLowerCase() ?? '';
     if (r.contains('cancel') || why.contains('start-timeout')) {
@@ -379,7 +392,9 @@ class OnlineGameController extends Notifier<OnlineGameState> {
     if (r.contains('draw')) return 'Beraberlik';
     final whiteWon = r.contains('white');
     if (yourColor == null) return whiteWon ? 'Beyaz kazandi' : 'Siyah kazandi';
-    final youWon = (whiteWon && yourColor == 'white') || (!whiteWon && yourColor == 'black');
+    final youWon =
+        (whiteWon && yourColor == 'white') ||
+        (!whiteWon && yourColor == 'black');
     return youWon ? 'Kazandin' : 'Kaybettin';
   }
 
@@ -417,14 +432,19 @@ class OnlineGameController extends Notifier<OnlineGameState> {
     final myColor = state.currentTurn;
     final now = DateTime.now();
     final myRemainingLive = state.liveRemainingMs(myColor, now);
-    final isFirstMoveForSide =
-        myColor == 'white' ? state.sanHistory.isEmpty : state.sanHistory.length <= 1;
-    final inc = isFirstMoveForSide ? 0 : (state.timeControl?.incrementSeconds ?? 0) * 1000;
+    final isFirstMoveForSide = myColor == 'white'
+        ? state.sanHistory.isEmpty
+        : state.sanHistory.length <= 1;
+    final inc = isFirstMoveForSide
+        ? 0
+        : (state.timeControl?.incrementSeconds ?? 0) * 1000;
     final myNewRemaining = myRemainingLive + inc;
-    final newWhite =
-        myColor == 'white' ? myNewRemaining : state.whiteRemainingMs;
-    final newBlack =
-        myColor == 'black' ? myNewRemaining : state.blackRemainingMs;
+    final newWhite = myColor == 'white'
+        ? myNewRemaining
+        : state.whiteRemainingMs;
+    final newBlack = myColor == 'black'
+        ? myNewRemaining
+        : state.blackRemainingMs;
 
     try {
       await _hub!.makeMove(state.gameId, from, to, san, fen);
@@ -500,7 +520,9 @@ class OnlineGameController extends Notifier<OnlineGameState> {
       await _hub!.offerDraw(state.gameId);
       state = state.copyWith(drawOfferSent: true, clearError: true);
     } catch (e) {
-      state = state.copyWith(errorMessage: 'Beraberlik teklifi gonderilemedi: $e');
+      state = state.copyWith(
+        errorMessage: 'Beraberlik teklifi gonderilemedi: $e',
+      );
     }
   }
 
@@ -544,5 +566,5 @@ class OnlineGameController extends Notifier<OnlineGameState> {
 
 final onlineGameProvider =
     NotifierProvider<OnlineGameController, OnlineGameState>(
-  OnlineGameController.new,
-);
+      OnlineGameController.new,
+    );

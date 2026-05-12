@@ -16,7 +16,7 @@ class ChessApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'ChessApp',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
+      theme: AppTheme.dark,
       routerConfig: router,
     );
   }

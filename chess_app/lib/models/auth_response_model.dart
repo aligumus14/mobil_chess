@@ -11,10 +11,11 @@ class AuthResponseModel {
     required this.token,
   });
 
-  factory AuthResponseModel.fromJson(Map<String, dynamic> json) => AuthResponseModel(
-    userId: json['userId'] as String,
-    username: json['username'] as String,
-    email: json['email'] as String,
-    token: json['token'] as String,
-  );
+  factory AuthResponseModel.fromJson(Map<String, dynamic> json) =>
+      AuthResponseModel(
+        userId: json['userId'] as String,
+        username: json['username'] as String,
+        email: json['email'] as String,
+        token: json['token'] as String,
+      );
 }

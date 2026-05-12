@@ -2,15 +2,9 @@ class EngineBestMoveRequest {
   final String fen;
   final String difficulty;
 
-  EngineBestMoveRequest({
-    required this.fen,
-    required this.difficulty,
-  });
+  EngineBestMoveRequest({required this.fen, required this.difficulty});
 
-  Map<String, dynamic> toJson() => {
-    'fen': fen,
-    'difficulty': difficulty,
-  };
+  Map<String, dynamic> toJson() => {'fen': fen, 'difficulty': difficulty};
 }
 
 class EngineBestMoveResponse {

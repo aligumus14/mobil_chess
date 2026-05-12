@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/chess_ui.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
@@ -7,24 +9,29 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      backgroundColor: AppColors.primary,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.castle, size: 96, color: Colors.white),
-            SizedBox(height: 16),
-            Text(
-              'ChessApp',
-              style: TextStyle(
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+      body: ChessBackground(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.castle_outlined,
+                size: 96,
+                color: AppColors.textPrimary,
               ),
-            ),
-            SizedBox(height: 32),
-            CircularProgressIndicator(color: Colors.white),
-          ],
+              SizedBox(height: 18),
+              Text(
+                'ChessApp',
+                style: TextStyle(
+                  fontSize: 36,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              SizedBox(height: 34),
+              CircularProgressIndicator(color: AppColors.primary),
+            ],
+          ),
         ),
       ),
     );

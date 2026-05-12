@@ -8,7 +8,9 @@ class EngineService {
 
   EngineService(this._api);
 
-  Future<EngineBestMoveResponse> getBestMove(EngineBestMoveRequest request) async {
+  Future<EngineBestMoveResponse> getBestMove(
+    EngineBestMoveRequest request,
+  ) async {
     try {
       final response = await _api.dio.post(
         ApiConstants.engineBestMove,
@@ -16,10 +18,13 @@ class EngineService {
       );
 
       if (response.statusCode == 200) {
-        return EngineBestMoveResponse.fromJson(response.data as Map<String, dynamic>);
+        return EngineBestMoveResponse.fromJson(
+          response.data as Map<String, dynamic>,
+        );
       }
 
-      throw _extractErrorMessage(response) ?? 'Best move could not be loaded (${response.statusCode})';
+      throw _extractErrorMessage(response) ??
+          'Best move could not be loaded (${response.statusCode})';
     } on DioException catch (e) {
       throw _extractDioMessage(e);
     }

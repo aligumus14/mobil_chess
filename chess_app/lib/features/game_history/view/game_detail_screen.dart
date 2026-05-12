@@ -10,10 +10,7 @@ import 'game_history_screen.dart';
 class GameDetailScreen extends ConsumerStatefulWidget {
   final String gameId;
 
-  const GameDetailScreen({
-    super.key,
-    required this.gameId,
-  });
+  const GameDetailScreen({super.key, required this.gameId});
 
   @override
   ConsumerState<GameDetailScreen> createState() => _GameDetailScreenState();
@@ -64,9 +61,13 @@ class _GameDetailScreenState extends ConsumerState<GameDetailScreen> {
           ),
         ),
         data: (detail) {
-          final selectedPly = (_selectedPly ?? detail.moves.length).clamp(0, detail.moves.length);
-          final selectedFen =
-              selectedPly == 0 ? detail.startFen : detail.moves[selectedPly - 1].fenAfterMove;
+          final selectedPly = (_selectedPly ?? detail.moves.length).clamp(
+            0,
+            detail.moves.length,
+          );
+          final selectedFen = selectedPly == 0
+              ? detail.startFen
+              : detail.moves[selectedPly - 1].fenAfterMove;
           _syncBoard(selectedFen);
 
           final boardOrientation = detail.playerColor == 'black'
@@ -78,7 +79,10 @@ class _GameDetailScreenState extends ConsumerState<GameDetailScreen> {
             children: [
               Row(
                 children: [
-                  ResultBadge(result: detail.result, playerWon: detail.playerWon),
+                  ResultBadge(
+                    result: detail.result,
+                    playerWon: detail.playerWon,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -119,7 +123,8 @@ class _GameDetailScreenState extends ConsumerState<GameDetailScreen> {
                     children: [
                       IconButton(
                         onPressed: selectedPly > 0
-                            ? () => setState(() => _selectedPly = selectedPly - 1)
+                            ? () =>
+                                  setState(() => _selectedPly = selectedPly - 1)
                             : null,
                         icon: const Icon(Icons.chevron_left),
                       ),
@@ -128,7 +133,9 @@ class _GameDetailScreenState extends ConsumerState<GameDetailScreen> {
                           children: [
                             Text(
                               _positionLabel(detail, selectedPly),
-                              style: const TextStyle(fontWeight: FontWeight.w700),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -144,7 +151,8 @@ class _GameDetailScreenState extends ConsumerState<GameDetailScreen> {
                       ),
                       IconButton(
                         onPressed: selectedPly < detail.moves.length
-                            ? () => setState(() => _selectedPly = selectedPly + 1)
+                            ? () =>
+                                  setState(() => _selectedPly = selectedPly + 1)
                             : null,
                         icon: const Icon(Icons.chevron_right),
                       ),
@@ -156,7 +164,8 @@ class _GameDetailScreenState extends ConsumerState<GameDetailScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () => context.push('/games/${widget.gameId}/analysis'),
+                  onPressed: () =>
+                      context.push('/games/${widget.gameId}/analysis'),
                   icon: const Icon(Icons.analytics_outlined),
                   label: const Text('Stockfish ile Analiz Et'),
                 ),
@@ -170,7 +179,10 @@ class _GameDetailScreenState extends ConsumerState<GameDetailScreen> {
                     children: [
                       const Text(
                         'Hamleler',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       if (detail.moves.isEmpty)
@@ -266,7 +278,9 @@ class _GameDetailScreenState extends ConsumerState<GameDetailScreen> {
 
     for (var index = 0; index < detail.moves.length; index += 2) {
       final whiteMove = detail.moves[index];
-      final blackMove = index + 1 < detail.moves.length ? detail.moves[index + 1] : null;
+      final blackMove = index + 1 < detail.moves.length
+          ? detail.moves[index + 1]
+          : null;
       final fullMoveNumber = (index ~/ 2) + 1;
 
       widgets.add(
@@ -328,7 +342,9 @@ class _MoveButton extends StatelessWidget {
       onPressed: onTap,
       style: OutlinedButton.styleFrom(
         alignment: Alignment.centerLeft,
-        backgroundColor: selected ? AppColors.primary.withValues(alpha: 0.08) : null,
+        backgroundColor: selected
+            ? AppColors.primary.withValues(alpha: 0.08)
+            : null,
         side: BorderSide(
           color: selected ? AppColors.primary : AppColors.divider,
           width: selected ? 2 : 1,

@@ -50,25 +50,31 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/games', builder: (_, __) => const GameHistoryScreen()),
       GoRoute(
         path: '/games/:id',
-        builder: (_, state) => GameDetailScreen(
-          gameId: state.pathParameters['id']!,
-        ),
+        builder: (_, state) =>
+            GameDetailScreen(gameId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/games/:id/analysis',
-        builder: (_, state) => GameAnalysisScreen(
-          gameId: state.pathParameters['id']!,
-        ),
+        builder: (_, state) =>
+            GameAnalysisScreen(gameId: state.pathParameters['id']!),
       ),
       GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
-      GoRoute(path: '/offline-setup', builder: (_, __) => const GameSetupScreen()),
-      GoRoute(path: '/offline-game', builder: (_, __) => const OfflineGameScreen()),
-      GoRoute(path: '/matchmaking', builder: (_, __) => const MatchmakingScreen()),
+      GoRoute(
+        path: '/offline-setup',
+        builder: (_, __) => const GameSetupScreen(),
+      ),
+      GoRoute(
+        path: '/offline-game',
+        builder: (_, __) => const OfflineGameScreen(),
+      ),
+      GoRoute(
+        path: '/matchmaking',
+        builder: (_, __) => const MatchmakingScreen(),
+      ),
       GoRoute(
         path: '/online-game/:id',
-        builder: (_, state) => OnlineGameScreen(
-          gameId: state.pathParameters['id']!,
-        ),
+        builder: (_, state) =>
+            OnlineGameScreen(gameId: state.pathParameters['id']!),
       ),
     ],
   );

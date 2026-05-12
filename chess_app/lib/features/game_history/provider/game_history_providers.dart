@@ -6,10 +6,7 @@ class GameHistoryPageRequest {
   final int page;
   final int pageSize;
 
-  const GameHistoryPageRequest({
-    required this.page,
-    required this.pageSize,
-  });
+  const GameHistoryPageRequest({required this.page, required this.pageSize});
 
   @override
   bool operator ==(Object other) {
@@ -24,12 +21,12 @@ class GameHistoryPageRequest {
 
 final myGamesProvider = FutureProvider.autoDispose
     .family<PagedGames, GameHistoryPageRequest>((ref, request) {
-  final service = ref.watch(gameHistoryServiceProvider);
-  return service.getMyGames(page: request.page, pageSize: request.pageSize);
-});
+      final service = ref.watch(gameHistoryServiceProvider);
+      return service.getMyGames(page: request.page, pageSize: request.pageSize);
+    });
 
-final gameDetailProvider =
-    FutureProvider.autoDispose.family<GameDetail, String>((ref, gameId) {
-  final service = ref.watch(gameHistoryServiceProvider);
-  return service.getGameById(gameId);
-});
+final gameDetailProvider = FutureProvider.autoDispose
+    .family<GameDetail, String>((ref, gameId) {
+      final service = ref.watch(gameHistoryServiceProvider);
+      return service.getGameById(gameId);
+    });
