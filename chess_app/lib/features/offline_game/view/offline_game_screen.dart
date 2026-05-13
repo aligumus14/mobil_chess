@@ -4,6 +4,7 @@ import 'package:flutter_chess_board/flutter_chess_board.dart' as fcb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../widgets/tap_to_move_board.dart';
 import '../logic/game_models.dart';
 import '../provider/offline_game_controller.dart';
 import '../widgets/game_result_dialog.dart';
@@ -122,7 +123,8 @@ class _OfflineGameScreenState extends ConsumerState<OfflineGameScreen> {
               absorbing: !gameState.isPlayerTurn || gameState.botThinking,
               child: SizedBox(
                 width: boardSize,
-                child: fcb.ChessBoard(
+                height: boardSize,
+                child: TapToMoveBoard(
                   controller: controller.boardController,
                   boardOrientation: gameState.boardOrientation,
                   boardColor: fcb.BoardColor.brown,

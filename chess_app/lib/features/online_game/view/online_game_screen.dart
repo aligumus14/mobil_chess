@@ -3,6 +3,7 @@ import 'package:flutter_chess_board/flutter_chess_board.dart' as fcb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../widgets/tap_to_move_board.dart';
 import '../provider/online_game_controller.dart';
 
 class OnlineGameScreen extends ConsumerStatefulWidget {
@@ -111,9 +112,10 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen> {
                 Center(
                   child: SizedBox(
                     width: boardSize,
+                    height: boardSize,
                     child: AbsorbPointer(
                       absorbing: !state.isYourTurn,
-                      child: fcb.ChessBoard(
+                      child: TapToMoveBoard(
                         controller: controller.boardController,
                         boardOrientation: state.boardOrientation,
                         boardColor: fcb.BoardColor.brown,
