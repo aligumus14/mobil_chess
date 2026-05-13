@@ -10,13 +10,14 @@ class ChessBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.palette;
     return DecoratedBox(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.background,
-            AppColors.backgroundAlt,
-            AppColors.background,
+            colors.background,
+            colors.backgroundAlt,
+            colors.background,
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -49,13 +50,14 @@ class ChessPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.palette;
     final panel = AnimatedContainer(
       duration: const Duration(milliseconds: 160),
       margin: margin,
       decoration: BoxDecoration(
-        color: color ?? AppColors.surface.withValues(alpha: 0.88),
+        color: color ?? colors.surface.withValues(alpha: 0.88),
         borderRadius: BorderRadius.circular(radius),
-        border: border ?? Border.all(color: AppColors.divider),
+        border: border ?? Border.all(color: colors.divider),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.22),
@@ -99,17 +101,18 @@ class PlayerAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.palette;
     final dotSize = radius * 0.34;
     return Stack(
       clipBehavior: Clip.none,
       children: [
         CircleAvatar(
           radius: radius,
-          backgroundColor: backgroundColor ?? AppColors.surfaceStrong,
+          backgroundColor: backgroundColor ?? colors.surfaceStrong,
           child: Text(
             initials(name),
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
               fontSize: radius * 0.56,
               fontWeight: FontWeight.w900,
             ),
@@ -122,9 +125,9 @@ class PlayerAvatar extends StatelessWidget {
             width: dotSize,
             height: dotSize,
             decoration: BoxDecoration(
-              color: online ? AppColors.primary : AppColors.textMuted,
+              color: online ? colors.primary : colors.textMuted,
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.background, width: 3),
+              border: Border.all(color: colors.background, width: 3),
             ),
           ),
         ),
@@ -146,6 +149,32 @@ class PlayerAvatar extends StatelessWidget {
   }
 }
 
+class KnightMark extends StatelessWidget {
+  final double size;
+  final Color color;
+
+  const KnightMark({
+    super.key,
+    this.size = 34,
+    this.color = AppColors.textPrimary,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.palette;
+    return Text(
+      String.fromCharCode(0x2658),
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        color: color == AppColors.textPrimary ? colors.textPrimary : color,
+        fontSize: size,
+        height: 1,
+        fontWeight: FontWeight.w900,
+      ),
+    );
+  }
+}
+
 class SectionTitle extends StatelessWidget {
   final String title;
   final IconData? icon;
@@ -160,17 +189,18 @@ class SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.palette;
     return Row(
       children: [
         if (icon != null) ...[
-          Icon(icon, color: AppColors.primary, size: 28),
+          Icon(icon, color: colors.primary, size: 28),
           const SizedBox(width: 12),
         ],
         Expanded(
           child: Text(
             title,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
+            style: TextStyle(
+              color: colors.textPrimary,
               fontSize: 22,
               fontWeight: FontWeight.w900,
             ),
@@ -198,15 +228,23 @@ class MetricTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.palette;
+    final displayColor = color == AppColors.primary
+        ? colors.primary
+        : color == AppColors.textSecondary
+            ? colors.textSecondary
+            : color == AppColors.error
+                ? colors.error
+                : color;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: color, size: 30),
+        Icon(icon, color: displayColor, size: 30),
         const SizedBox(height: 8),
         Text(
           label,
-          style: const TextStyle(
-            color: AppColors.textSecondary,
+          style: TextStyle(
+            color: colors.textSecondary,
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
@@ -215,7 +253,7 @@ class MetricTile extends StatelessWidget {
         Text(
           value,
           style: TextStyle(
-            color: color,
+            color: displayColor,
             fontSize: 28,
             fontWeight: FontWeight.w900,
           ),
@@ -232,20 +270,21 @@ class ChessBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.palette;
     return SafeArea(
       top: false,
       child: Container(
         height: 84,
         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 6),
         decoration: BoxDecoration(
-          color: AppColors.background.withValues(alpha: 0.96),
-          border: const Border(top: BorderSide(color: AppColors.divider)),
+          color: colors.background.withValues(alpha: 0.96),
+          border: Border(top: BorderSide(color: colors.divider)),
         ),
         child: Row(
           children: [
             Expanded(
               child: _BottomNavItem(
-                icon: Icons.castle_outlined,
+                iconBuilder: (color) => KnightMark(size: 32, color: color),
                 label: 'Oyna',
                 active: currentIndex == 0,
                 onTap: () => context.go('/home'),
@@ -253,7 +292,8 @@ class ChessBottomNav extends StatelessWidget {
             ),
             Expanded(
               child: _BottomNavItem(
-                icon: Icons.schedule_rounded,
+                iconBuilder: (color) =>
+                    Icon(Icons.schedule_rounded, color: color, size: 30),
                 label: 'Gecmis',
                 active: currentIndex == 1,
                 onTap: () => context.go('/games'),
@@ -261,7 +301,8 @@ class ChessBottomNav extends StatelessWidget {
             ),
             Expanded(
               child: _BottomNavItem(
-                icon: Icons.person_outline_rounded,
+                iconBuilder: (color) =>
+                    Icon(Icons.person_outline_rounded, color: color, size: 30),
                 label: 'Profil',
                 active: currentIndex == 2,
                 onTap: () => context.go('/profile'),
@@ -275,13 +316,13 @@ class ChessBottomNav extends StatelessWidget {
 }
 
 class _BottomNavItem extends StatelessWidget {
-  final IconData icon;
+  final Widget Function(Color color) iconBuilder;
   final String label;
   final bool active;
   final VoidCallback onTap;
 
   const _BottomNavItem({
-    required this.icon,
+    required this.iconBuilder,
     required this.label,
     required this.active,
     required this.onTap,
@@ -289,14 +330,19 @@ class _BottomNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = active ? AppColors.primary : AppColors.textSecondary;
+    final colors = context.palette;
+    final color = active ? colors.primary : colors.textSecondary;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(18),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: color, size: 30),
+          SizedBox(
+            width: 34,
+            height: 34,
+            child: Center(child: iconBuilder(color)),
+          ),
           const SizedBox(height: 4),
           Text(
             label,

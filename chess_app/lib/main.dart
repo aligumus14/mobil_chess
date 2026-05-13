@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'core/providers/app_settings_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'routes/app_router.dart';
 
@@ -13,10 +14,12 @@ class ChessApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
+    final settings = ref.watch(appSettingsProvider);
+    final isLight = settings.theme == AppThemePreference.light;
     return MaterialApp.router(
       title: 'ChessApp',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark,
+      theme: isLight ? AppTheme.light : AppTheme.dark,
       routerConfig: router,
     );
   }

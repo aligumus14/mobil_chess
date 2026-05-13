@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:signalr_netcore/signalr_client.dart';
+import 'package:signalr_netcore/ihub_protocol.dart';
 import '../core/constants/api_constants.dart';
 import '../core/constants/storage_keys.dart';
 import '../core/storage/secure_storage_service.dart';
@@ -38,6 +39,7 @@ class GameHubService {
         final t = await _storage.read(StorageKeys.token);
         return t ?? '';
       },
+      headers: MessageHeaders()..setHeaderValue('ngrok-skip-browser-warning', 'true'),
     );
 
     final conn = HubConnectionBuilder()

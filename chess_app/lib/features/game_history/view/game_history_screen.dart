@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/chess_ui.dart';
 import '../../../models/game_models.dart';
+import '../../shared/widgets/app_chrome.dart';
 import '../provider/game_history_providers.dart';
 
 enum _HistoryFilter { all, online, offline }
@@ -27,16 +28,14 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
     final gamesAsync = ref.watch(myGamesProvider(request));
 
     return Scaffold(
+      drawer: const ChessAppDrawer(currentIndex: 1),
       appBar: AppBar(
-        leading: const Padding(
-          padding: EdgeInsets.only(left: 10),
-          child: Icon(Icons.castle_outlined),
-        ),
+        leading: const AppMenuButton(),
         title: const Text('Oyun Gecmisi'),
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 14),
-            child: Icon(Icons.notifications_none_rounded),
+            child: AppNotificationButton(),
           ),
         ],
       ),
@@ -154,6 +153,7 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.palette;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(999),
@@ -161,16 +161,16 @@ class _FilterChip extends StatelessWidget {
         duration: const Duration(milliseconds: 160),
         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 13),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primary : AppColors.surface,
+          color: selected ? colors.primary : colors.surface,
           borderRadius: BorderRadius.circular(999),
           border: Border.all(
-            color: selected ? AppColors.primary : AppColors.divider,
+            color: selected ? colors.primary : colors.divider,
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: selected ? Colors.white : AppColors.textPrimary,
+            color: selected ? Colors.white : colors.textPrimary,
             fontSize: 16,
             fontWeight: FontWeight.w900,
           ),
@@ -187,20 +187,21 @@ class _HistorySummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.palette;
     return ChessPanel(
       padding: const EdgeInsets.all(18),
       child: Row(
         children: [
-          const Icon(Icons.history_rounded, color: AppColors.primary, size: 30),
+          Icon(Icons.history_rounded, color: colors.primary, size: 30),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Kayitli Maclar',
                   style: TextStyle(
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                     fontSize: 17,
                     fontWeight: FontWeight.w900,
                   ),
@@ -208,8 +209,8 @@ class _HistorySummaryCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   '${pagedGames.totalCount} mac, sayfa ${pagedGames.page}/${pagedGames.totalPages}',
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
+                  style: TextStyle(
+                    color: colors.textSecondary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -230,6 +231,7 @@ class _GameHistoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.palette;
     final result = _ResultView.fromGame(game);
     return ChessPanel(
       onTap: onTap,
@@ -263,8 +265,8 @@ class _GameHistoryCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   'vs ${_opponentLabel(game)}',
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 17,
                     fontWeight: FontWeight.w900,
                   ),
@@ -272,8 +274,8 @@ class _GameHistoryCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   '${formatGameDateTime(game.startedAt)} - ${game.moveCount} hamle',
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
+                  style: TextStyle(
+                    color: colors.textSecondary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -287,16 +289,16 @@ class _GameHistoryCard extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.schedule_rounded,
-                    color: AppColors.textSecondary,
+                    color: colors.textSecondary,
                     size: 22,
                   ),
                   const SizedBox(width: 6),
                   Text(
                     _modeLabel(game),
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
+                    style: TextStyle(
+                      color: colors.textPrimary,
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
                     ),
@@ -304,9 +306,9 @@ class _GameHistoryCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              const Icon(
+              Icon(
                 Icons.chevron_right_rounded,
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
                 size: 30,
               ),
             ],

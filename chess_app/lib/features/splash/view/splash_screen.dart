@@ -14,11 +14,7 @@ class SplashScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.castle_outlined,
-                size: 96,
-                color: AppColors.textPrimary,
-              ),
+              KnightMark(size: 96),
               SizedBox(height: 18),
               Text(
                 'ChessApp',

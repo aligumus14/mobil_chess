@@ -3,7 +3,8 @@ class ApiConstants {
   static const String baseUrlWeb = 'http://localhost:5196/api';
 
   // Android emulator host makinenin localhost'una 10.0.2.2 ile erisir.
-  static const String baseUrlAndroid = 'http://10.0.2.2:5196/api';
+  // ngrok tuneli uzerinden disaridan erisim icin HTTPS URL kullaniliyor.
+  static const String baseUrlAndroid = 'https://unfilled-pushup-icky.ngrok-free.dev/api';
 
   // Windows/iOS gibi yerel calisma senaryolari.
   static const String baseUrl = 'http://localhost:5196/api';
@@ -30,6 +31,6 @@ class ApiConstants {
 
   // Hub endpoint (no /api prefix)
   static const String gameHubWeb = 'http://localhost:5196/hubs/game';
-  static const String gameHubAndroid = 'http://10.0.2.2:5196/hubs/game';
+  static const String gameHubAndroid = 'https://unfilled-pushup-icky.ngrok-free.dev/hubs/game';
   static const String gameHub = 'http://localhost:5196/hubs/game';
 }

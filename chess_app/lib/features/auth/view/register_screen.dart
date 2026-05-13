@@ -72,11 +72,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Icon(
-                      Icons.castle_outlined,
-                      size: 72,
-                      color: AppColors.textPrimary,
-                    ),
+                    const KnightMark(size: 72),
                     const SizedBox(height: 24),
                     const Text(
                       'Yeni Hesap',

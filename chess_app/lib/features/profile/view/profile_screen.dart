@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/chess_ui.dart';
 import '../../../models/user_model.dart';
+import '../../shared/widgets/app_chrome.dart';
 import '../provider/profile_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -14,6 +15,7 @@ class ProfileScreen extends ConsumerWidget {
     final profileAsync = ref.watch(profileProvider);
 
     return Scaffold(
+      drawer: const ChessAppDrawer(currentIndex: 2),
       bottomNavigationBar: const ChessBottomNav(currentIndex: 2),
       body: ChessBackground(
         child: SafeArea(
@@ -89,26 +91,23 @@ class _ProfileTopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    final colors = context.palette;
+    return Row(
       children: [
-        Icon(Icons.castle_outlined, color: AppColors.textPrimary, size: 34),
+        const AppMenuButton(),
         Expanded(
           child: Center(
             child: Text(
               'Profil',
               style: TextStyle(
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
                 fontSize: 22,
                 fontWeight: FontWeight.w900,
               ),
             ),
           ),
         ),
-        Icon(
-          Icons.notifications_none_rounded,
-          color: AppColors.textPrimary,
-          size: 30,
-        ),
+        const AppNotificationButton(),
       ],
     );
   }
@@ -121,6 +120,7 @@ class _ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.palette;
     return Row(
       children: [
         PlayerAvatar(name: user.username, radius: 54),
@@ -133,8 +133,8 @@ class _ProfileHeader extends StatelessWidget {
                 user.username,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
+                style: TextStyle(
+                  color: colors.textPrimary,
                   fontSize: 34,
                   fontWeight: FontWeight.w900,
                 ),
@@ -144,16 +144,16 @@ class _ProfileHeader extends StatelessWidget {
                 children: [
                   Text(
                     '${user.elo}',
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
+                    style: TextStyle(
+                      color: colors.textSecondary,
                       fontSize: 21,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(width: 10),
-                  const Icon(
+                  Icon(
                     Icons.signal_cellular_alt_rounded,
-                    color: AppColors.textSecondary,
+                    color: colors.textSecondary,
                     size: 24,
                   ),
                 ],
@@ -259,18 +259,19 @@ class _RatingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.palette;
     return ChessPanel(
       padding: const EdgeInsets.all(16),
       radius: 16,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: AppColors.primary, size: 30),
+          Icon(icon, color: colors.primary, size: 30),
           const SizedBox(height: 10),
           Text(
             label,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
+            style: TextStyle(
+              color: colors.textSecondary,
               fontSize: 14,
               fontWeight: FontWeight.w700,
             ),
@@ -278,8 +279,8 @@ class _RatingCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             '$value',
-            style: const TextStyle(
-              color: AppColors.textPrimary,
+            style: TextStyle(
+              color: colors.textPrimary,
               fontSize: 26,
               fontWeight: FontWeight.w900,
             ),
@@ -297,6 +298,7 @@ class _RatingPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.palette;
     return ChessPanel(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -304,22 +306,22 @@ class _RatingPanel extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Puan Ozeti',
                   style: TextStyle(
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                     fontSize: 18,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
               ),
-              const Icon(Icons.trending_up_rounded, color: AppColors.primary),
+              Icon(Icons.trending_up_rounded, color: colors.primary),
               const SizedBox(width: 8),
               Text(
                 '${user.winRate.toStringAsFixed(0)}%',
-                style: const TextStyle(
-                  color: AppColors.primary,
+                style: TextStyle(
+                  color: colors.primary,
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
                 ),
@@ -342,13 +344,13 @@ class _RatingPanel extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text('Oyunlar', style: TextStyle(color: AppColors.textSecondary)),
+            children: [
+              Text('Oyunlar', style: TextStyle(color: colors.textSecondary)),
               Text(
                 'Galibiyet',
-                style: TextStyle(color: AppColors.textSecondary),
+                style: TextStyle(color: colors.textSecondary),
               ),
-              Text('Puan', style: TextStyle(color: AppColors.textSecondary)),
+              Text('Puan', style: TextStyle(color: colors.textSecondary)),
             ],
           ),
         ],
@@ -468,17 +470,18 @@ class _SettingRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.palette;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.textSecondary, size: 28),
+          Icon(icon, color: colors.textSecondary, size: 28),
           const SizedBox(width: 18),
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(
-                color: AppColors.textSecondary,
+              style: TextStyle(
+                color: colors.textSecondary,
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
               ),
@@ -490,17 +493,17 @@ class _SettingRow extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.right,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
+              style: TextStyle(
+                color: colors.textPrimary,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
               ),
             ),
           ),
           const SizedBox(width: 8),
-          const Icon(
+          Icon(
             Icons.chevron_right_rounded,
-            color: AppColors.textSecondary,
+            color: colors.textSecondary,
           ),
         ],
       ),
@@ -513,7 +516,7 @@ class _VerticalDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(width: 1, height: 86, color: AppColors.divider);
+    return Container(width: 1, height: 86, color: context.palette.divider);
   }
 }
 

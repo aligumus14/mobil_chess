@@ -60,11 +60,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Icon(
-                      Icons.castle_outlined,
-                      size: 86,
-                      color: AppColors.textPrimary,
-                    ),
+                    const KnightMark(size: 86),
                     const SizedBox(height: 30),
                     const Text(
                       'Hos Geldin',

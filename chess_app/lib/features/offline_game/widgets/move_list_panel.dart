@@ -8,6 +8,7 @@ class MoveListPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.palette;
     final pairs = <({int num, String white, String? black})>[];
     for (var i = 0; i < moves.length; i += 2) {
       pairs.add((
@@ -18,29 +19,39 @@ class MoveListPanel extends StatelessWidget {
     }
 
     return Card(
+      color: colors.surface,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: BorderSide(color: colors.divider),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
                 Icon(
                   Icons.format_list_numbered_rounded,
-                  color: AppColors.textPrimary,
+                  color: colors.primary,
                 ),
-                SizedBox(width: 10),
+                const SizedBox(width: 10),
                 Text(
                   'Hamle Akisi',
-                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                  style: TextStyle(
+                    color: colors.textPrimary,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 16,
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 14),
             if (pairs.isEmpty)
-              const Text(
+              Text(
                 'Henuz hamle yok.',
-                style: TextStyle(color: AppColors.textSecondary),
+                style: TextStyle(color: colors.textSecondary),
               )
             else
               ConstrainedBox(
@@ -57,8 +68,9 @@ class MoveListPanel extends StatelessWidget {
                         vertical: 10,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceStrong,
+                        color: colors.surfaceStrong,
                         borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: colors.divider),
                       ),
                       child: Row(
                         children: [
@@ -66,8 +78,8 @@ class MoveListPanel extends StatelessWidget {
                             width: 30,
                             child: Text(
                               '${pair.num}.',
-                              style: const TextStyle(
-                                color: AppColors.textSecondary,
+                              style: TextStyle(
+                                color: colors.textSecondary,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -75,7 +87,8 @@ class MoveListPanel extends StatelessWidget {
                           Expanded(
                             child: Text(
                               pair.white,
-                              style: const TextStyle(
+                              style: TextStyle(
+                                color: colors.textPrimary,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -83,7 +96,10 @@ class MoveListPanel extends StatelessWidget {
                           Expanded(
                             child: Text(
                               pair.black ?? '',
-                              style: const TextStyle(
+                              style: TextStyle(
+                                color: pair.black == null
+                                    ? colors.textMuted
+                                    : colors.textPrimary,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),

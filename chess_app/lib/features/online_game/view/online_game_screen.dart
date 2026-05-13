@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chess_board/flutter_chess_board.dart' as fcb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/theme/app_theme.dart';
 import '../provider/online_game_controller.dart';
 
 class OnlineGameScreen extends ConsumerStatefulWidget {
@@ -414,13 +415,23 @@ class _MoveList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.palette;
     if (moves.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(12),
-        child: Text('Henuz hamle yok.'),
+      return Padding(
+        padding: const EdgeInsets.all(12),
+        child: Text(
+          'Henuz hamle yok.',
+          style: TextStyle(color: colors.textSecondary),
+        ),
       );
     }
     return Card(
+      color: colors.surface,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: BorderSide(color: colors.divider),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Wrap(
@@ -429,7 +440,15 @@ class _MoveList extends StatelessWidget {
           children: List.generate(moves.length, (i) {
             final label =
                 '${(i ~/ 2) + 1}${i.isEven ? '.' : '...'} ${moves[i]}';
-            return Chip(label: Text(label));
+            return Chip(
+              backgroundColor: colors.surfaceStrong,
+              side: BorderSide(color: colors.divider),
+              label: Text(label),
+              labelStyle: TextStyle(
+                color: colors.textPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+            );
           }),
         ),
       ),
